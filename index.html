@@ -6,6 +6,7 @@
   <!-- 引入 SheetJS 库，用于生成 Excel 文件 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
+    /* 整体页面背景和字体设置 */
     body {
       margin: 0;
       padding: 0;
@@ -100,24 +101,24 @@
       <button type="button" onclick="checkAnswer()">提交答案</button>
     </form>
     <div id="level1" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again.
+      <span class="symbol">✖</span><strong> Incorrect！</strong> Please try again. Take another close look at the highlighted sentences—what do the changes in the character’s actions suggest? How did that make you feel?
     </div>
     <div id="level2" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again.
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Based on highlighted sentences, try to think about why Jenny first smiled and checked the ‘YES’ box, but then suddenly stopped and stared at her homework. What do you think she might be thinking? How does that make you feel?
     </div>
     <div id="level3" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again.
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. If you were Jenny—excited about summer camp but also facing piles of summer homework—what complex feelings might you experience in that moment?
     </div>
     <div id="level4" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s behavior indicates she is conflicted.
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s actions suggest that she wanted to go to summer camp but was also worried about her unfinished homework. This kind of feeling—wanting something but hesitating due to other concerns—is best described as ‘矛盾的’.
     </div>
   </div>
-
   <script>
     let attempt = 0;
     let answerHistory = [];
 
     function checkAnswer() {
+      // 隐藏所有错误提示
       document.querySelectorAll('.level').forEach(el => el.style.display = 'none');
       const radios = document.getElementsByName("answer");
       let selected = '';
@@ -155,9 +156,9 @@
       radios.forEach(radio => radio.checked = false);
     }
 
-    // 使用 SheetJS 生成 Excel 文件并触发下载，然后跳转到指定链接
+    // 使用 SheetJS 生成 Excel 文件，触发下载，然后延时 2 秒跳转到指定链接
     function downloadExcel(history, rawScore, potentialScore) {
-      // 构造数据：二维数组，第一行是表头，后续行是历史答案，再加上原始得分和潜力得分
+      // 构造数据：二维数组，第一行为表头，后续为记录
       const data = [];
       data.push(["Attempt", "Answer"]);
       history.forEach((ans, idx) => {
@@ -167,20 +168,19 @@
       data.push(["Raw Score", rawScore]);
       data.push(["Potential Score", potentialScore]);
 
-      // 生成工作表
+      // 生成工作表及工作簿
       const ws = XLSX.utils.aoa_to_sheet(data);
-      // 生成工作簿
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Results");
+      const wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
 
-      // 将工作簿写入二进制字符串
-      const wbout = XLSX.write(wb, {bookType:'xlsx', type:'binary'});
-
-      // 转换为Blob对象
+      // 二进制字符串转为 Blob 对象
       function s2ab(s) {
         const buf = new ArrayBuffer(s.length);
         const view = new Uint8Array(buf);
-        for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+        for (let i = 0; i < s.length; i++) {
+          view[i] = s.charCodeAt(i) & 0xFF;
+        }
         return buf;
       }
       const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
@@ -192,7 +192,7 @@
       downloadLink.click();
       document.body.removeChild(downloadLink);
 
-      // 下载完成后延时2秒跳转到指定链接
+      // 2秒后跳转到文叔叔链接
       setTimeout(function() {
         window.location.href = "https://c.wss.pet/s/gqzbglms1r8";
       }, 2000);

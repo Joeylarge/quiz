@@ -20,7 +20,7 @@
       width: 90%;
       background-color: #fff;
       padding: 30px 40px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       border-radius: 10px;
       margin: 40px;
     }
@@ -79,7 +79,7 @@
       margin-right: 10px;
       color: #d32f2f;
     }
-    /* 隐藏 iframe 用于提交表单 */
+    /* 隐藏的 iframe 用于静默提交 */
     iframe#hidden_iframe {
       display: none;
     }
@@ -112,82 +112,4 @@
       <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. If you were Jenny—excited about summer camp but also facing piles of summer homework—what complex feelings might you experience in that moment?
     </div>
     <div id="level4" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s actions suggest that she wanted to go to summer camp but was also worried about her unfinished homework. This kind of feeling is best described as ‘矛盾的’.
-    </div>
-  </div>
-
-  <!-- 隐藏的 iframe 用于静默提交 -->
-  <iframe id="hidden_iframe" name="hidden_iframe"></iframe>
-
-  <script>
-    let attempt = 0;
-    let answerHistory = [];
-
-    function checkAnswer() {
-      document.querySelectorAll('.level').forEach(el => el.style.display = 'none');
-      const radios = document.getElementsByName("answer");
-      let selected = '';
-      for (const radio of radios) {
-        if (radio.checked) {
-          selected = radio.value;
-          answerHistory.push(selected);
-          break;
-        }
-      }
-      if (selected === "B") {
-        let rawScore = Math.max(0, 4 - attempt);
-        let potentialScore = ((4 - attempt) / 4).toFixed(2);
-        alert("答案正确！✔");
-        submitToWJX_ViaForm(answerHistory, rawScore, potentialScore);
-        clearSelection();
-      } else {
-        attempt++;
-        if (attempt === 1) {
-          document.getElementById('highlight-sentence').classList.add('highlight');
-        }
-        if (attempt <= 4) {
-          document.getElementById('level' + attempt).style.display = 'block';
-          clearSelection();
-        } else {
-          alert("请重新检查你的理解，答案应为‘矛盾的’。");
-          submitToWJX_ViaForm(answerHistory, 0, 0);
-          clearSelection();
-        }
-      }
-    }
-
-    function clearSelection() {
-      const radios = document.getElementsByName("answer");
-      radios.forEach(radio => radio.checked = false);
-    }
-
-    function submitToWJX_ViaForm(history, rawScore, potentialScore) {
-      const form = document.createElement("form");
-      form.method = "POST";
-      // 这里使用 WenJuanXing 的处理接口 URL：
-      form.action = "https://www.wjx.cn/joinnew/processjq.ashx?submittype=1&curid=hMAWNiy";
-      form.target = "hidden_iframe"; // 使用隐藏的iframe作提交目标
-      form.style.display = "none";
-
-      const q1 = document.createElement("input");
-      q1.name = "q1";
-      q1.value = history.join(",");
-      form.appendChild(q1);
-
-      const q2 = document.createElement("input");
-      q2.name = "q2";
-      q2.value = rawScore.toString();
-      form.appendChild(q2);
-
-      const q3 = document.createElement("input");
-      q3.name = "q3";
-      q3.value = potentialScore.toString();
-      form.appendChild(q3);
-
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
-    }
-  </script>
-</body>
-</html>
+      <span class="symbol">✖

@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>动态评估测试示例</title>
   <style>
-    /* 整体页面背景和字体设置 */
     body {
       margin: 0;
       padding: 0;
@@ -79,6 +78,10 @@
       margin-right: 10px;
       color: #d32f2f;
     }
+    /* 隐藏 iframe */
+    iframe#hidden_iframe {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -111,6 +114,9 @@
       <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s actions suggest that she wanted to go to summer camp but was also worried about her unfinished homework. This kind of feeling is best described as ‘矛盾的’.
     </div>
   </div>
+
+  <!-- 隐藏的iframe用于表单提交 -->
+  <iframe id="hidden_iframe" name="hidden_iframe"></iframe>
 
   <script>
     let attempt = 0;
@@ -155,11 +161,10 @@
     }
 
     function submitToWJX_ViaForm(history, rawScore, potentialScore) {
-      // 请确保此处链接没有多余的 "#" 号
       const form = document.createElement("form");
       form.method = "POST";
-      form.action = "https://www.wjx.cn/vm/hMAWNiy.aspx"; // 使用正确的问卷星链接
-      form.target = "_blank"; // 可选：新窗口打开，避免干扰当前页面
+      form.action = "https://www.wjx.cn/vm/hMAWNiy.aspx"; // 请确保此链接正确，无多余字符
+      form.target = "hidden_iframe"; // 设置提交目标为隐藏的iframe
       form.style.display = "none";
 
       const q1 = document.createElement("input");
@@ -179,6 +184,8 @@
 
       document.body.appendChild(form);
       form.submit();
+      // 提交完后删除表单
+      document.body.removeChild(form);
     }
   </script>
 </body>

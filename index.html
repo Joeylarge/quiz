@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>动态评估测试示例</title>
+  <!-- 引入 SheetJS 库，用于生成 Excel 文件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    /* 整体页面背景和字体设置 */
     body {
       margin: 0;
       padding: 0;
@@ -15,37 +16,32 @@
       align-items: center;
       justify-content: center;
     }
-    /* 内容容器 */
     .container {
       max-width: 800px;
       width: 90%;
       background-color: #fff;
       padding: 30px 40px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       border-radius: 10px;
       margin: 40px;
     }
-    /* 标题 */
     h3 {
       text-align: center;
       color: #333;
       margin-bottom: 25px;
     }
-    /* 高亮样式 */
     .highlight {
       background-color: #fffd9e;
       padding: 3px 8px;
       border-radius: 3px;
       font-weight: bold;
     }
-    /* 正文段落 */
     p {
       font-size: 18px;
       line-height: 1.8;
       color: #555;
       margin-bottom: 20px;
     }
-    /* 题目选择项 */
     form label {
       display: block;
       font-size: 18px;
@@ -55,7 +51,6 @@
     input[type="radio"] {
       margin-right: 10px;
     }
-    /* 按钮 */
     button {
       display: inline-block;
       margin-top: 15px;
@@ -71,7 +66,6 @@
     button:hover {
       background-color: #45a049;
     }
-    /* 错误反馈区域 */
     .level {
       display: none;
       margin-top: 20px;
@@ -81,7 +75,6 @@
       background-color: #f9f9f9;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    /* 错误提示符号 */
     .symbol {
       font-size: 24px;
       margin-right: 10px;
@@ -92,13 +85,11 @@
 <body>
   <div class="container">
     <h3>根据上下文推断加粗词汇 <strong class="highlight">ambivalent</strong> 的意思：</h3>
-
     <p>
       Jenny felt ambivalent about the summer camp. “It’s free and fun!” her friend said excitedly, already planning what to pack. With a smile, Jenny drew a big checkmark in the “YES” box on the form.
       <span id="highlight-sentence">Then her hand stopped. She looked at the two big piles of summer homework on the desk. One was math. The other was a thick reading packet.</span>
       Outside, children laughed while playing in the sun. Jenny opened her window slightly. The breeze smelled like cut grass. She sat there for a moment, not moving, the form still open in front of her.
     </p>
-
     <p><strong>请选择正确的含义：</strong></p>
     <form id="quizForm">
       <label><input type="radio" name="answer" value="A"> A. 伤心的</label>
@@ -108,28 +99,25 @@
       <label><input type="radio" name="answer" value="E"> E. 困惑的</label>
       <button type="button" onclick="checkAnswer()">提交答案</button>
     </form>
-
     <div id="level1" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Take another close look at the highlighted sentences.
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again.
     </div>
     <div id="level2" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Consider why Jenny's actions change after checking the ‘YES’ box.
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again.
     </div>
     <div id="level3" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Reflect on the mixed feelings Jenny might have in this situation.
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again.
     </div>
     <div id="level4" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s behavior indicates she is conflicted. This feeling is best described as "矛盾的".
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s behavior indicates she is conflicted.
     </div>
   </div>
 
   <script>
-    // 全局变量：记录错误次数和所有选择记录
     let attempt = 0;
     let answerHistory = [];
 
     function checkAnswer() {
-      // 每次提交前隐藏所有错误反馈
       document.querySelectorAll('.level').forEach(el => el.style.display = 'none');
       const radios = document.getElementsByName("answer");
       let selected = '';
@@ -144,7 +132,7 @@
         let rawScore = Math.max(0, 4 - attempt);
         let potentialScore = ((4 - attempt) / 4).toFixed(2);
         alert("答案正确！✔");
-        downloadCSV(answerHistory, rawScore, potentialScore);
+        downloadExcel(answerHistory, rawScore, potentialScore);
         clearSelection();
       } else {
         attempt++;
@@ -156,7 +144,7 @@
           clearSelection();
         } else {
           alert("请重新检查你的理解，答案应为‘矛盾的’。");
-          downloadCSV(answerHistory, 0, 0);
+          downloadExcel(answerHistory, 0, 0);
           clearSelection();
         }
       }
@@ -167,29 +155,44 @@
       radios.forEach(radio => radio.checked = false);
     }
 
-    // 自动生成 CSV 文件并下载，然后在2秒后跳转到指定链接
-    function downloadCSV(history, rawScore, potentialScore) {
-      const header = ["Attempt", "Answer"];
-      let csvContent = header.join(",") + "\n";
-
+    // 使用 SheetJS 生成 Excel 文件并触发下载，然后跳转到指定链接
+    function downloadExcel(history, rawScore, potentialScore) {
+      // 构造数据：二维数组，第一行是表头，后续行是历史答案，再加上原始得分和潜力得分
+      const data = [];
+      data.push(["Attempt", "Answer"]);
       history.forEach((ans, idx) => {
-        csvContent += (idx + 1) + "," + ans + "\n";
+        data.push([idx + 1, ans]);
       });
+      data.push([]);
+      data.push(["Raw Score", rawScore]);
+      data.push(["Potential Score", potentialScore]);
 
-      csvContent += "\nRaw Score," + rawScore + "\n";
-      csvContent += "Potential Score," + potentialScore + "\n";
+      // 生成工作表
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      // 生成工作簿
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Results");
 
-      // 生成Blob对象，添加BOM以避免中文乱码
-      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      // 将工作簿写入二进制字符串
+      const wbout = XLSX.write(wb, {bookType:'xlsx', type:'binary'});
+
+      // 转换为Blob对象
+      function s2ab(s) {
+        const buf = new ArrayBuffer(s.length);
+        const view = new Uint8Array(buf);
+        for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+        return buf;
+      }
+      const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
       const url = URL.createObjectURL(blob);
       const downloadLink = document.createElement("a");
       downloadLink.href = url;
-      downloadLink.download = "result.csv";
+      downloadLink.download = "result.xlsx";
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
-      
-      // 跳转至文叔叔链接（2秒后）
+
+      // 下载完成后延时2秒跳转到指定链接
       setTimeout(function() {
         window.location.href = "https://c.wss.pet/s/gqzbglms1r8";
       }, 2000);

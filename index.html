@@ -1,12 +1,13 @@
-<!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>动态评估测试示例</title>
+  <!-- 增加移动端适应性 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Assessment Example</title>
   <!-- 引入 SheetJS 库，用于生成 Excel 文件 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    /* 整体页面背景和字体设置 */
+    /* Overall page background and font settings */
     body {
       margin: 0;
       padding: 0;
@@ -14,35 +15,98 @@
       background: linear-gradient(135deg, #e0f7fa, #ffffff);
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
     }
+    /* 针对手机屏幕的简单媒体查询 */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      .container, #startPage {
+        width: 95%;
+        padding: 20px;
+      }
+      h3 {
+        font-size: 20px;
+      }
+      p, form label {
+        font-size: 16px;
+      }
+      button {
+        font-size: 16px;
+        padding: 8px 16px;
+      }
+    }
+    /* Start Page 样式 */
+    #startPage {
+      max-width: 800px;
+      width: 90%;
+      background-color: #fff;
+      padding: 20px 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      margin: 20px;
+      text-align: center;
+    }
+    #startPage p {
+      font-size: 18px;
+      color: #333;
+      margin: 10px 0;
+    }
+    #startPage label {
+      font-size: 18px;
+      margin: 5px;
+    }
+    #startPage input {
+      padding: 4px 8px;
+      font-size: 16px;
+    }
+    /* Content container (用于题目区域) */
     .container {
       max-width: 800px;
       width: 90%;
       background-color: #fff;
       padding: 30px 40px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       border-radius: 10px;
-      margin: 40px;
+      margin: 20px;
     }
+    /* 隐藏题目区域的外层容器，开始页面结束后显示 */
+    #questionsPage {
+      display: none;
+      width: 100%;
+    }
+    /* Question block visibility */
+    .question-block {
+      display: none;
+    }
+    .question-block.active {
+      display: block;
+    }
+    /* Title style */
     h3 {
       text-align: center;
       color: #333;
       margin-bottom: 25px;
+      font-size: 22px;
     }
+    /* Highlight style */
     .highlight {
       background-color: #fffd9e;
       padding: 3px 8px;
       border-radius: 3px;
       font-weight: bold;
     }
+    /* Paragraph style */
     p {
       font-size: 18px;
       line-height: 1.8;
       color: #555;
       margin-bottom: 20px;
     }
+    /* Options style */
     form label {
       display: block;
       font-size: 18px;
@@ -52,6 +116,7 @@
     input[type="radio"] {
       margin-right: 10px;
     }
+    /* Button style */
     button {
       display: inline-block;
       margin-top: 15px;
@@ -67,6 +132,7 @@
     button:hover {
       background-color: #45a049;
     }
+    /* Level feedback style */
     .level {
       display: none;
       margin-top: 20px;
@@ -74,106 +140,246 @@
       border: 2px solid #ddd;
       border-radius: 5px;
       background-color: #f9f9f9;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .symbol {
-      font-size: 24px;
-      margin-right: 10px;
+      font-size: 16px;
       color: #d32f2f;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h3>根据上下文推断加粗词汇 <strong class="highlight">ambivalent</strong> 的意思：</h3>
-    <p>
-      Jenny felt ambivalent about the summer camp. “It’s free and fun!” her friend said excitedly, already planning what to pack. With a smile, Jenny drew a big checkmark in the “YES” box on the form.
-      <span id="highlight-sentence">Then her hand stopped. She looked at the two big piles of summer homework on the desk. One was math. The other was a thick reading packet.</span>
-      Outside, children laughed while playing in the sun. Jenny opened her window slightly. The breeze smelled like cut grass. She sat there for a moment, not moving, the form still open in front of her.
-    </p>
-    <p><strong>请选择正确的含义：</strong></p>
-    <form id="quizForm">
-      <label><input type="radio" name="answer" value="A"> A. 伤心的</label>
-      <label><input type="radio" name="answer" value="B"> B. 矛盾的</label>
-      <label><input type="radio" name="answer" value="C"> C. 兴奋的</label>
-      <label><input type="radio" name="answer" value="D"> D. 冷漠的</label>
-      <label><input type="radio" name="answer" value="E"> E. 困惑的</label>
-      <button type="button" onclick="checkAnswer()">提交答案</button>
-    </form>
-    <div id="level1" class="level">
-      <span class="symbol">✖</span><strong> Incorrect！</strong> Please try again. Take another close look at the highlighted sentences—what do the changes in the character’s actions suggest? How did that make you feel?
+  <!-- 开始页面 -->
+  <div id="startPage">
+    <p>请不要中途退出页面，必须在20分钟内完成测试。</p>
+    <p>请输入班级和学号：</p>
+    <label>班级: <input type="text" id="class_name"></label>
+    <label>学号: <input type="text" id="student_id"></label>
+    <br>
+    <button type="button" onclick="startTest()">开始答题</button>
+  </div>
+  
+  <!-- 题目区域（初始隐藏） -->
+  <div id="questionsPage">
+    <!-- Question 1 -->
+    <div class="container question-block active" id="question_q1">
+      <h3>根据上下文推断加粗词汇 <strong class="highlight">ambivalent</strong> 的意思：</h3>
+      <p>
+        Jenny felt <strong class="highlight">ambivalent</strong> about the summer camp. “It’s free and fun!” her friend said <span class="highlight" style="display:none;">excitedly</span>, already planning what to pack. With a smile, Jenny <span class="highlight" style="display:none;">drew a big checkmark in the “YES” box on the form. Then her hand stopped.</span> She looked at the <span class="highlight" style="display:none;">two big piles of summer homework</span> on the desk. One was math. The other was a thick reading packet. Outside, children laughed while playing in the sun. Jenny opened her window slightly. The breeze smelled like cut grass. She sat there for a moment, not moving, the form still open in front of her.
+      </p>
+      <form id="form_q1">
+        <label><input type="radio" name="q1" value="A"> A. 伤心的</label>
+        <label><input type="radio" name="q1" value="B"> B. 矛盾的</label>
+        <label><input type="radio" name="q1" value="C"> C. 兴奋的</label>
+        <label><input type="radio" name="q1" value="D"> D. 冷漠的</label>
+        <label><input type="radio" name="q1" value="E"> E. 困惑的</label>
+        <button type="button" onclick="checkAnswer('q1')">Submit Answer</button>
+      </form>
+      <div id="q1_level1" class="level">
+        Incorrect! Please try again. Take another close look at the highlighted sentences—what do the changes in the character’s actions suggest? How does that make you feel?
+      </div>
+      <div id="q1_level2" class="level">
+        Incorrect! Please try again. Based on highlighted sentences, try to think about why Jenny first smiled and checked the ‘YES’ box, but then suddenly stopped and stared at her homework. What do you think she might be thinking? How does that make you feel?
+      </div>
+      <div id="q1_level3" class="level">
+        Incorrect! Please try again. If you were Jenny—excited about summer camp but also facing piles of summer homework—what complex feelings might you experience in that moment?
+      </div>
+      <div id="q1_level4" class="level">
+        Incorrect! Jenny’s actions suggest that she wanted to go to summer camp but was also worried about her unfinished homework. This kind of feeling—wanting something but hesitating due to other concerns—is best described as ‘矛盾的’.
+      </div>
     </div>
-    <div id="level2" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Based on highlighted sentences, try to think about why Jenny first smiled and checked the ‘YES’ box, but then suddenly stopped and stared at her homework. What do you think she might be thinking? How does that make you feel?
-    </div>
-    <div id="level3" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. If you were Jenny—excited about summer camp but also facing piles of summer homework—what complex feelings might you experience in that moment?
-    </div>
-    <div id="level4" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s actions suggest that she wanted to go to summer camp but was also worried about her unfinished homework. This kind of feeling—wanting something but hesitating due to other concerns—is best described as ‘矛盾的’.
+    
+    <!-- Question 2 -->
+    <div class="container question-block" id="question_q2">
+      <h3>根据上下文推断加粗词汇 <strong class="highlight">bereavement</strong> 的意思：</h3>
+      <p>
+        It was already April, but John <span class="highlight" style="display:none;">still hadn’t opened the curtains</span> in the small bedroom upstairs. One afternoon, John was looking for batteries and opened a locked drawer by mistake. He <span class="highlight" style="display:none;">stopped suddenly</span>, quietly staring at the <span class="highlight" style="display:none;">scarf inside, carefully folded</span>. Slowly, he touched it, then closed the drawer again. Later, when his friends asked him to join them for dinner, John shook his head and said softly, “Maybe next time.” Nobody asked more questions, but <span class="highlight" style="display:none;">they looked at each other quietly</span>. John’s <strong class="highlight">bereavement</strong> was quiet, hidden behind closed doors, yet everyone could feel something had deeply changed.
+      </p>
+      <form id="form_q2">
+        <label><input type="radio" name="q2" value="A"> A. 长期孤独</label>
+        <label><input type="radio" name="q2" value="B"> B. 丧亲之痛</label>
+        <label><input type="radio" name="q2" value="C"> C. 身体不适</label>
+        <label><input type="radio" name="q2" value="D"> D. 事业受阻</label>
+        <label><input type="radio" name="q2" value="E"> E. 思念之情</label>
+        <button type="button" onclick="checkAnswer('q2')">Submit Answer</button>
+      </form>
+      <div id="q2_level1" class="level">
+        Incorrect! Please try again. Take another close look at the highlighted sentences—what John did after he opened the drawer. What do his quiet actions suggest? How did his behavior make you feel?
+      </div>
+      <div id="q2_level2" class="level">
+        Incorrect! Please try again. Think about why John suddenly stopped when he saw the scarf, and why he turned down dinner with his friends. What might he be feeling or thinking at that moment? How would that make you feel?
+      </div>
+      <div id="q2_level3" class="level">
+        Incorrect! Please try again. Imagine you were John, and the scarf reminded you of someone. How would you feel? What kind of emotions might make it hard to open the curtains or go out with friends?
+      </div>
+      <div id="q2_level4" class="level">
+        Incorrect! John’s actions show that he is quietly sad because the loss of someone close to him. He stays away from sunlight, keeps the room shut, and doesn’t talk much to his friends. This kind of strong, hidden sadness from losing someone close is best called ‘丧亲之痛’.
+      </div>
     </div>
   </div>
+  
+  <!-- Export Button Container -->
+  <div class="container" id="resultContainer" style="display: none; text-align: center;">
+    <button type="button" onclick="exportResults()">Export Results and Proceed</button>
+  </div>
+  
   <script>
-    let attempt = 0;
-    let answerHistory = [];
-
-    function checkAnswer() {
-      // 隐藏所有错误提示
-      document.querySelectorAll('.level').forEach(el => el.style.display = 'none');
-      const radios = document.getElementsByName("answer");
-      let selected = '';
+    // 开始测试：验证班级和学号填写后，隐藏开始页面，显示题目区域
+    function startTest() {
+      let studentClass = document.getElementById("class_name").value.trim();
+      let studentID = document.getElementById("student_id").value.trim();
+      if (studentClass === "" || studentID === "") {
+        alert("请完整填写班级和学号！");
+        return;
+      }
+      // 隐藏开始页面，显示题目区域
+      document.getElementById("startPage").style.display = "none";
+      document.getElementById("questionsPage").style.display = "block";
+    }
+    
+    // Correct answers and maximum attempts
+    const correctKeys = { q1: "B", q2: "B" };
+    const maxAttempts = 4;
+    // Records for attempts, answer history, and question status
+    let attempts = { q1: 0, q2: 0 };
+    let answerHistory = { q1: [], q2: [] };
+    let questionStatus = { q1: false, q2: false };
+    
+    // Question order and current question id
+    const questionIds = ["q1", "q2"];
+    let currentQ = questionIds[0];
+    
+    // Function to check the answer for a given question id (e.g., "q1")
+    function checkAnswer(qid) {
+      if (questionStatus[qid]) {
+        alert("This question has already been answered correctly!");
+        return;
+      }
+      // Hide all level feedback for current question
+      for (let i = 1; i <= maxAttempts; i++) {
+        let levelDiv = document.getElementById(`${qid}_level${i}`);
+        if (levelDiv) levelDiv.style.display = 'none';
+      }
+      
+      // 第一次错误时直接显示题干中所有隐藏的高亮部分
+      if (attempts[qid] === 0) {
+        document.querySelectorAll(`#question_${qid} p span.highlight`).forEach(el => {
+          el.style.display = 'inline';
+        });
+      } else {
+        document.querySelectorAll(`#question_${qid} p span.highlight`).forEach(el => {
+          el.style.display = 'inline';
+        });
+      }
+      
+      // 获取选中答案
+      const radios = document.getElementsByName(qid);
+      let selected = "";
       for (const radio of radios) {
         if (radio.checked) {
           selected = radio.value;
-          answerHistory.push(selected);
           break;
         }
       }
-      if (selected === "B") {
-        let rawScore = Math.max(0, 4 - attempt);
-        let potentialScore = ((4 - attempt) / 4).toFixed(2);
-        alert("答案正确！✔");
-        downloadExcel(answerHistory, rawScore, potentialScore);
-        clearSelection();
+      if (!selected) {
+        alert("Please select an answer!");
+        return;
+      }
+      answerHistory[qid].push(selected);
+      attempts[qid]++;
+      
+      if (selected === correctKeys[qid]) {
+        questionStatus[qid] = true;
+        alert("Correct Answer!");
+        // 禁用当前题的所有选项
+        radios.forEach(radio => radio.disabled = true);
+        nextQuestion();
       } else {
-        attempt++;
-        if (attempt === 1) {
-          document.getElementById('highlight-sentence').classList.add('highlight');
+        // 显示对应的提示
+        if (attempts[qid] <= maxAttempts) {
+          document.getElementById(`${qid}_level${attempts[qid]}`).style.display = 'block';
         }
-        if (attempt <= 4) {
-          document.getElementById('level' + attempt).style.display = 'block';
-          clearSelection();
-        } else {
-          alert("请重新检查你的理解，答案应为‘矛盾的’。");
-          downloadExcel(answerHistory, 0, 0);
-          clearSelection();
+        // 超过最大尝试后，禁用选项并跳转至下一题
+        if (attempts[qid] >= maxAttempts) {
+          radios.forEach(radio => radio.disabled = true);
+          nextQuestion();
         }
       }
     }
-
-    function clearSelection() {
-      const radios = document.getElementsByName("answer");
-      radios.forEach(radio => radio.checked = false);
+    
+    // 切换到下一题
+    function nextQuestion() {
+      document.getElementById("question_" + currentQ).classList.remove("active");
+      const currentIndex = questionIds.indexOf(currentQ);
+      if (currentIndex < questionIds.length - 1) {
+        currentQ = questionIds[currentIndex + 1];
+        document.getElementById("question_" + currentQ).classList.add("active");
+      } else {
+        document.getElementById("resultContainer").style.display = "block";
+      }
     }
-
-    // 使用 SheetJS 生成 Excel 文件，触发下载，然后延时 2 秒跳转到指定链接
-    function downloadExcel(history, rawScore, potentialScore) {
-      // 构造数据：二维数组，第一行为表头，后续为记录
-      const data = [];
-      data.push(["Attempt", "Answer"]);
-      history.forEach((ans, idx) => {
-        data.push([idx + 1, ans]);
+    
+    // 计算并导出分数，同时生成 Excel 文件并跳转提交链接
+    // 规则说明：
+    // 1. 基本分数（Pretest Score）：若第一次作答正确（attempts[qid] == 1），得 4 分，否则为 0。
+    // 2. 后测分数（Posttest Score）：如果在后续提示中答对，则：
+    //    - 第二次答对得 3 分，
+    //    - 第三次答对得 2 分，
+    //    - 第四次答对得 1 分，
+    //    - 未答对则为 0。
+    // 3. 单题 LPS：((2 * posttest_score) - pretest_score) / 4
+    // 4. 总潜力分：LPS_total = ((2 * sum(Posttest Score)) - sum(Pretest Score)) / (N * 4)
+    function exportResults() {
+      let pretestTotal = 0;
+      let posttestTotal = 0;
+      let data = [["Question", "Answer History", "Basic Score", "Posttest Score", "LPS (Item)"]];
+      
+      questionIds.forEach(qid => {
+        let basic = 0;
+        let post = 0;
+        if (questionStatus[qid]) {
+          if (attempts[qid] === 1) {
+            basic = 4;
+            post = 0;
+          } else if (attempts[qid] === 2) {
+            basic = 0;
+            post = 3;
+          } else if (attempts[qid] === 3) {
+            basic = 0;
+            post = 2;
+          } else if (attempts[qid] === 4) {
+            basic = 0;
+            post = 1;
+          }
+        }
+        pretestTotal += basic;
+        posttestTotal += post;
+        let lps_item = ((2 * post) - basic) / 4;
+        data.push([qid, answerHistory[qid].join(","), basic, post, lps_item.toFixed(3)]);
       });
+      
+      let numItems = questionIds.length;
+      let smax = numItems * 4;
+      let totalLPS = ((2 * posttestTotal) - pretestTotal) / smax;
+      
+      // 在结果表最前面加入学号和班级信息
+      let studentClass = document.getElementById("class_name").value;
+      let studentID = document.getElementById("student_id").value;
+      let headerRows = [
+          ["班级:", studentClass],
+          ["学号:", studentID],
+          []  // 空行
+      ];
+      
+      data = headerRows.concat(data);
+      
+      // 在Excel中增加总分行
       data.push([]);
-      data.push(["Raw Score", rawScore]);
-      data.push(["Potential Score", potentialScore]);
-
+      data.push(["Total", "", pretestTotal, posttestTotal, totalLPS.toFixed(3)]);
+      
       // 生成工作表及工作簿
       const ws = XLSX.utils.aoa_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Results");
       const wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
-
+      
       // 二进制字符串转为 Blob 对象
       function s2ab(s) {
         const buf = new ArrayBuffer(s.length);
@@ -191,8 +397,8 @@
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
-
-      // 2秒后跳转到文叔叔链接
+      
+      // 2秒后跳转到提交链接
       setTimeout(function() {
         window.location.href = "https://c.wss.pet/s/gqzbglms1r8";
       }, 2000);

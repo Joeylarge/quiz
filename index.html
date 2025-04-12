@@ -15,32 +15,37 @@
       align-items: center;
       justify-content: center;
     }
+    /* 内容容器 */
     .container {
       max-width: 800px;
       width: 90%;
       background-color: #fff;
       padding: 30px 40px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       border-radius: 10px;
       margin: 40px;
     }
+    /* 标题 */
     h3 {
       text-align: center;
       color: #333;
       margin-bottom: 25px;
     }
+    /* 高亮样式 */
     .highlight {
       background-color: #fffd9e;
       padding: 3px 8px;
       border-radius: 3px;
       font-weight: bold;
     }
+    /* 正文段落 */
     p {
       font-size: 18px;
       line-height: 1.8;
       color: #555;
       margin-bottom: 20px;
     }
+    /* 题目选择项 */
     form label {
       display: block;
       font-size: 18px;
@@ -50,6 +55,7 @@
     input[type="radio"] {
       margin-right: 10px;
     }
+    /* 按钮 */
     button {
       display: inline-block;
       margin-top: 15px;
@@ -65,6 +71,7 @@
     button:hover {
       background-color: #45a049;
     }
+    /* 错误反馈区域 */
     .level {
       display: none;
       margin-top: 20px;
@@ -74,25 +81,24 @@
       background-color: #f9f9f9;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
+    /* 错误提示符号 */
     .symbol {
       font-size: 24px;
       margin-right: 10px;
       color: #d32f2f;
-    }
-    /* 隐藏的 iframe 用于静默提交 */
-    iframe#hidden_iframe {
-      display: none;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h3>根据上下文推断加粗词汇 <strong class="highlight">ambivalent</strong> 的意思：</h3>
+
     <p>
       Jenny felt ambivalent about the summer camp. “It’s free and fun!” her friend said excitedly, already planning what to pack. With a smile, Jenny drew a big checkmark in the “YES” box on the form.
       <span id="highlight-sentence">Then her hand stopped. She looked at the two big piles of summer homework on the desk. One was math. The other was a thick reading packet.</span>
       Outside, children laughed while playing in the sun. Jenny opened her window slightly. The breeze smelled like cut grass. She sat there for a moment, not moving, the form still open in front of her.
     </p>
+
     <p><strong>请选择正确的含义：</strong></p>
     <form id="quizForm">
       <label><input type="radio" name="answer" value="A"> A. 伤心的</label>
@@ -102,28 +108,28 @@
       <label><input type="radio" name="answer" value="E"> E. 困惑的</label>
       <button type="button" onclick="checkAnswer()">提交答案</button>
     </form>
+
     <div id="level1" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Take another close look at the highlighted sentences—what do the changes in the character’s actions suggest? How did that make you feel?
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Take another close look at the highlighted sentences.
     </div>
     <div id="level2" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Based on highlighted sentences, try to think about why Jenny first smiled and checked the ‘YES’ box, but then suddenly stopped and stared at her homework.
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Consider why Jenny's actions change after checking the ‘YES’ box.
     </div>
     <div id="level3" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. If you were Jenny—excited about summer camp but also facing piles of summer homework—what complex feelings might you experience in that moment?
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Reflect on the mixed feelings Jenny might have in this situation.
     </div>
     <div id="level4" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s actions suggest that she wanted to go to summer camp but was also worried about her unfinished homework. This kind of feeling is best described as ‘矛盾的’.
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s behavior indicates she is conflicted. This feeling is best described as "矛盾的".
     </div>
   </div>
 
-  <!-- 隐藏的 iframe -->
-  <iframe id="hidden_iframe" name="hidden_iframe"></iframe>
-
   <script>
+    // 全局变量：记录错误次数和所有选择记录
     let attempt = 0;
     let answerHistory = [];
 
     function checkAnswer() {
+      // 每次提交前隐藏所有错误反馈
       document.querySelectorAll('.level').forEach(el => el.style.display = 'none');
       const radios = document.getElementsByName("answer");
       let selected = '';
@@ -138,7 +144,7 @@
         let rawScore = Math.max(0, 4 - attempt);
         let potentialScore = ((4 - attempt) / 4).toFixed(2);
         alert("答案正确！✔");
-        submitToWJX_ViaForm(answerHistory, rawScore, potentialScore);
+        downloadCSV(answerHistory, rawScore, potentialScore);
         clearSelection();
       } else {
         attempt++;
@@ -150,7 +156,7 @@
           clearSelection();
         } else {
           alert("请重新检查你的理解，答案应为‘矛盾的’。");
-          submitToWJX_ViaForm(answerHistory, 0, 0);
+          downloadCSV(answerHistory, 0, 0);
           clearSelection();
         }
       }
@@ -161,32 +167,32 @@
       radios.forEach(radio => radio.checked = false);
     }
 
-    function submitToWJX_ViaForm(history, rawScore, potentialScore) {
-      const form = document.createElement("form");
-      form.method = "POST";
-      // 注意：此处提交地址必须为 WenJuanXing 数据提交接口 URL
-      form.action = "https://www.wjx.cn/joinnew/processjq.ashx?submittype=1&curid=hMAWNiy";
-      form.target = "hidden_iframe";  // 使用隐藏的iframe提交
-      form.style.display = "none";
+    // 自动生成 CSV 文件并下载，然后在2秒后跳转到指定链接
+    function downloadCSV(history, rawScore, potentialScore) {
+      const header = ["Attempt", "Answer"];
+      let csvContent = header.join(",") + "\n";
 
-      const q1 = document.createElement("input");
-      q1.name = "q1";
-      q1.value = history.join(",");
-      form.appendChild(q1);
+      history.forEach((ans, idx) => {
+        csvContent += (idx + 1) + "," + ans + "\n";
+      });
 
-      const q2 = document.createElement("input");
-      q2.name = "q2";
-      q2.value = rawScore.toString();
-      form.appendChild(q2);
+      csvContent += "\nRaw Score," + rawScore + "\n";
+      csvContent += "Potential Score," + potentialScore + "\n";
 
-      const q3 = document.createElement("input");
-      q3.name = "q3";
-      q3.value = potentialScore.toString();
-      form.appendChild(q3);
-
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      // 生成Blob对象，添加BOM以避免中文乱码
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.download = "result.csv";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // 跳转至文叔叔链接（2秒后）
+      setTimeout(function() {
+        window.location.href = "https://c.wss.pet/s/gqzbglms1r8";
+      }, 2000);
     }
   </script>
 </body>

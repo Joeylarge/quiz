@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>动态评估测试示例</title>
   <style>
+    /* 整体页面背景和字体设置 */
     body {
       margin: 0;
       padding: 0;
@@ -78,7 +79,7 @@
       margin-right: 10px;
       color: #d32f2f;
     }
-    /* 隐藏 iframe */
+    /* 隐藏 iframe 用于提交表单 */
     iframe#hidden_iframe {
       display: none;
     }
@@ -115,7 +116,7 @@
     </div>
   </div>
 
-  <!-- 隐藏的iframe用于表单提交 -->
+  <!-- 隐藏的 iframe 用于静默提交 -->
   <iframe id="hidden_iframe" name="hidden_iframe"></iframe>
 
   <script>
@@ -163,8 +164,9 @@
     function submitToWJX_ViaForm(history, rawScore, potentialScore) {
       const form = document.createElement("form");
       form.method = "POST";
-      form.action = "https://www.wjx.cn/vm/hMAWNiy.aspx"; // 请确保此链接正确，无多余字符
-      form.target = "hidden_iframe"; // 设置提交目标为隐藏的iframe
+      // 这里使用 WenJuanXing 的处理接口 URL：
+      form.action = "https://www.wjx.cn/joinnew/processjq.ashx?submittype=1&curid=hMAWNiy";
+      form.target = "hidden_iframe"; // 使用隐藏的iframe作提交目标
       form.style.display = "none";
 
       const q1 = document.createElement("input");
@@ -184,7 +186,6 @@
 
       document.body.appendChild(form);
       form.submit();
-      // 提交完后删除表单
       document.body.removeChild(form);
     }
   </script>

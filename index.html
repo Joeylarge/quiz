@@ -7,7 +7,7 @@
   <!-- 引入 SheetJS 库，用于生成 Excel 文件 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    /* Overall page background and font settings */
+    /* 基本样式 */
     body {
       margin: 0;
       padding: 0;
@@ -19,111 +19,98 @@
       align-items: center;
       justify-content: center;
     }
-    /* 针对手机屏幕的简单媒体查询 */
-    @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      .container, #startPage {
-        width: 95%;
-        padding: 20px;
-      }
-      h3 {
-        font-size: 20px;
-      }
-      p, form label {
-        font-size: 16px;
-      }
-      button {
-        font-size: 16px;
-        padding: 8px 16px;
-      }
-    }
-    /* Start Page 样式 */
+    /* 开始页面 */
     #startPage {
-      max-width: 800px;
+      max-width: 600px;
       width: 90%;
       background-color: #fff;
-      padding: 20px 30px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
+      padding: 25px 20px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
       margin: 20px;
       text-align: center;
     }
     #startPage p {
       font-size: 18px;
       color: #333;
-      margin: 10px 0;
+      margin: 15px 0;
+      line-height: 1.5;
     }
     #startPage label {
       font-size: 18px;
       margin: 5px;
+      display: inline-block;
     }
     #startPage input {
-      padding: 4px 8px;
+      padding: 6px 10px;
       font-size: 16px;
+      margin: 5px;
+      width: 80%;
+      max-width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
     }
-    /* Content container (用于题目区域) */
+    /* 题目区域容器 */
     .container {
-      max-width: 800px;
+      max-width: 600px;
       width: 90%;
       background-color: #fff;
-      padding: 30px 40px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-      margin: 20px;
+      padding: 25px 20px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      margin: 15px;
     }
     /* 隐藏题目区域的外层容器，开始页面结束后显示 */
     #questionsPage {
       display: none;
       width: 100%;
     }
-    /* Question block visibility */
+    /* 题目块 */
     .question-block {
       display: none;
     }
     .question-block.active {
       display: block;
     }
-    /* Title style */
+    /* 标题样式 */
     h3 {
       text-align: center;
       color: #333;
-      margin-bottom: 25px;
-      font-size: 22px;
+      margin-bottom: 20px;
+      font-size: 20px;
     }
-    /* Highlight style */
+    /* 高亮样式 */
     .highlight {
       background-color: #fffd9e;
-      padding: 3px 8px;
+      padding: 2px 6px;
       border-radius: 3px;
       font-weight: bold;
     }
-    /* Paragraph style */
+    /* 正文段落 */
     p {
-      font-size: 18px;
-      line-height: 1.8;
+      font-size: 16px;
+      line-height: 1.6;
       color: #555;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
-    /* Options style */
+    /* 选项 */
     form label {
       display: block;
-      font-size: 18px;
+      font-size: 16px;
       margin: 10px 0;
       cursor: pointer;
     }
     input[type="radio"] {
-      margin-right: 10px;
+      margin-right: 8px;
     }
-    /* Button style */
+    /* 按钮 */
     button {
       display: inline-block;
       margin-top: 15px;
-      padding: 10px 20px;
+      padding: 8px 16px;
       font-size: 16px;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
       background-color: #4CAF50;
       color: white;
       cursor: pointer;
@@ -132,16 +119,37 @@
     button:hover {
       background-color: #45a049;
     }
-    /* Level feedback style */
+    /* 级别反馈 */
     .level {
       display: none;
-      margin-top: 20px;
-      padding: 20px;
+      margin-top: 15px;
+      padding: 15px;
       border: 2px solid #ddd;
-      border-radius: 5px;
+      border-radius: 4px;
       background-color: #f9f9f9;
       font-size: 16px;
       color: #d32f2f;
+    }
+    /* 针对手机屏幕的进一步调整 */
+    @media (max-width: 480px) {
+      #startPage, .container {
+        width: 95%;
+        padding: 15px;
+      }
+      h3 {
+        font-size: 18px;
+      }
+      p, form label {
+        font-size: 15px;
+      }
+      button {
+        font-size: 15px;
+        padding: 8px 12px;
+      }
+      #startPage input {
+        width: 90%;
+        max-width: none;
+      }
     }
   </style>
 </head>
@@ -215,7 +223,7 @@
     </div>
   </div>
   
-  <!-- Export Button Container -->
+  <!-- 导出及提交按钮区域 -->
   <div class="container" id="resultContainer" style="display: none; text-align: center;">
     <button type="button" onclick="exportResults()">Export Results and Proceed</button>
   </div>
@@ -246,7 +254,7 @@
     const questionIds = ["q1", "q2"];
     let currentQ = questionIds[0];
     
-    // Function to check the answer for a given question id (e.g., "q1")
+    // Function to check the answer for a given question id
     function checkAnswer(qid) {
       if (questionStatus[qid]) {
         alert("This question has already been answered correctly!");
@@ -316,16 +324,7 @@
       }
     }
     
-    // 计算并导出分数，同时生成 Excel 文件并跳转提交链接
-    // 规则说明：
-    // 1. 基本分数（Pretest Score）：若第一次作答正确（attempts[qid] == 1），得 4 分，否则为 0。
-    // 2. 后测分数（Posttest Score）：如果在后续提示中答对，则：
-    //    - 第二次答对得 3 分，
-    //    - 第三次答对得 2 分，
-    //    - 第四次答对得 1 分，
-    //    - 未答对则为 0。
-    // 3. 单题 LPS：((2 * posttest_score) - pretest_score) / 4
-    // 4. 总潜力分：LPS_total = ((2 * sum(Posttest Score)) - sum(Pretest Score)) / (N * 4)
+    // 计算分数、生成 Excel 并跳转提交链接
     function exportResults() {
       let pretestTotal = 0;
       let posttestTotal = 0;

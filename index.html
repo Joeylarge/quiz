@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>动态评估测试示例</title>
   <style>
+    /* 整体页面背景和字体设置 */
     body {
       margin: 0;
       padding: 0;
@@ -83,13 +84,11 @@
 <body>
   <div class="container">
     <h3>根据上下文推断加粗词汇 <strong class="highlight">ambivalent</strong> 的意思：</h3>
-
     <p>
       Jenny felt ambivalent about the summer camp. “It’s free and fun!” her friend said excitedly, already planning what to pack. With a smile, Jenny drew a big checkmark in the “YES” box on the form.
       <span id="highlight-sentence">Then her hand stopped. She looked at the two big piles of summer homework on the desk. One was math. The other was a thick reading packet.</span>
       Outside, children laughed while playing in the sun. Jenny opened her window slightly. The breeze smelled like cut grass. She sat there for a moment, not moving, the form still open in front of her.
     </p>
-
     <p><strong>请选择正确的含义：</strong></p>
     <form id="quizForm">
       <label><input type="radio" name="answer" value="A"> A. 伤心的</label>
@@ -99,7 +98,6 @@
       <label><input type="radio" name="answer" value="E"> E. 困惑的</label>
       <button type="button" onclick="checkAnswer()">提交答案</button>
     </form>
-
     <div id="level1" class="level">
       <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Take another close look at the highlighted sentences—what do the changes in the character’s actions suggest? How did that make you feel?
     </div>
@@ -120,7 +118,6 @@
 
     function checkAnswer() {
       document.querySelectorAll('.level').forEach(el => el.style.display = 'none');
-
       const radios = document.getElementsByName("answer");
       let selected = '';
       for (const radio of radios) {
@@ -130,7 +127,6 @@
           break;
         }
       }
-
       if (selected === "B") {
         let rawScore = Math.max(0, 4 - attempt);
         let potentialScore = ((4 - attempt) / 4).toFixed(2);
@@ -159,11 +155,11 @@
     }
 
     function submitToWJX_ViaForm(history, rawScore, potentialScore) {
+      // 请确保此处链接没有多余的 "#" 号
       const form = document.createElement("form");
       form.method = "POST";
-      form.action = "https://www.wjx.cn/vm/hMAWNiy.aspx"; // 你的问卷星链接
-      form.target = "_blank"; // ✅ 可选：在新窗口打开，避免打断当前页面
-
+      form.action = "https://www.wjx.cn/vm/hMAWNiy.aspx"; // 使用正确的问卷星链接
+      form.target = "_blank"; // 可选：新窗口打开，避免干扰当前页面
       form.style.display = "none";
 
       const q1 = document.createElement("input");

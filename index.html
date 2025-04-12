@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>动态评估测试示例</title>
   <style>
-    /* 整体页面背景和字体设置 */
     body {
       margin: 0;
       padding: 0;
@@ -15,7 +14,6 @@
       align-items: center;
       justify-content: center;
     }
-    /* 内容容器 */
     .container {
       max-width: 800px;
       width: 90%;
@@ -25,27 +23,23 @@
       border-radius: 10px;
       margin: 40px;
     }
-    /* 标题 */
     h3 {
       text-align: center;
       color: #333;
       margin-bottom: 25px;
     }
-    /* 高亮样式 */
     .highlight {
       background-color: #fffd9e;
       padding: 3px 8px;
       border-radius: 3px;
       font-weight: bold;
     }
-    /* 正文段落 */
     p {
       font-size: 18px;
       line-height: 1.8;
       color: #555;
       margin-bottom: 20px;
     }
-    /* 题目选择项 */
     form label {
       display: block;
       font-size: 18px;
@@ -55,7 +49,6 @@
     input[type="radio"] {
       margin-right: 10px;
     }
-    /* 按钮 */
     button {
       display: inline-block;
       margin-top: 15px;
@@ -71,7 +64,6 @@
     button:hover {
       background-color: #45a049;
     }
-    /* 错误反馈区域 */
     .level {
       display: none;
       margin-top: 20px;
@@ -81,7 +73,6 @@
       background-color: #f9f9f9;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    /* 错误提示符号 */
     .symbol {
       font-size: 24px;
       margin-right: 10px;
@@ -113,29 +104,23 @@
       <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Take another close look at the highlighted sentences—what do the changes in the character’s actions suggest? How did that make you feel?
     </div>
     <div id="level2" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Based on highlighted sentences, try to think about why Jenny first smiled and checked the ‘YES’ box, but then suddenly stopped and stared at her homework. What do you think she might be thinking? How does that make you feel?
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. Based on highlighted sentences, try to think about why Jenny first smiled and checked the ‘YES’ box, but then suddenly stopped and stared at her homework.
     </div>
     <div id="level3" class="level">
       <span class="symbol">✖</span><strong>Incorrect！</strong> Please try again. If you were Jenny—excited about summer camp but also facing piles of summer homework—what complex feelings might you experience in that moment?
     </div>
     <div id="level4" class="level">
-      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s actions suggest that she wanted to go to summer camp but was also worried about her unfinished homework. This kind of feeling—wanting something but hesitating due to other concerns—is best described as ‘矛盾的’.
+      <span class="symbol">✖</span><strong>Incorrect！</strong> Jenny’s actions suggest that she wanted to go to summer camp but was also worried about her unfinished homework. This kind of feeling is best described as ‘矛盾的’.
     </div>
   </div>
 
   <script>
-    // 全局变量：记录错误次数与所有选择记录
     let attempt = 0;
     let answerHistory = [];
 
-    // 核心函数：判断答案并提交数据
     function checkAnswer() {
-      // 提交前先将错误反馈隐藏
-      document.querySelectorAll('.level').forEach(function(el) {
-        el.style.display = 'none';
-      });
+      document.querySelectorAll('.level').forEach(el => el.style.display = 'none');
 
-      // 遍历单选按钮，记录用户的选择
       const radios = document.getElementsByName("answer");
       let selected = '';
       for (const radio of radios) {
@@ -146,13 +131,11 @@
         }
       }
 
-      // 正确答案为 "B"
       if (selected === "B") {
-        let rawScore = Math.max(0, 4 - attempt); // 原始得分
-        let potentialScore = ((4 - attempt) / 4).toFixed(2); // 潜力得分，保留两位小数
+        let rawScore = Math.max(0, 4 - attempt);
+        let potentialScore = ((4 - attempt) / 4).toFixed(2);
         alert("答案正确！✔");
-        // 调用函数将数据提交到问卷星后台
-        submitToWJX(answerHistory, rawScore, potentialScore);
+        submitToWJX_ViaForm(answerHistory, rawScore, potentialScore);
         clearSelection();
       } else {
         attempt++;
@@ -164,45 +147,42 @@
           clearSelection();
         } else {
           alert("请重新检查你的理解，答案应为‘矛盾的’。");
-          submitToWJX(answerHistory, 0, 0);
+          submitToWJX_ViaForm(answerHistory, 0, 0);
           clearSelection();
         }
       }
     }
 
-    // 清除单选按钮选中状态
     function clearSelection() {
       const radios = document.getElementsByName("answer");
       radios.forEach(radio => radio.checked = false);
     }
 
-    // 新增函数：将数据提交至问卷星后台（注意替换你的问卷ID）
-    function submitToWJX(history, rawScore, potentialScore) {
-      // 注意：替换下面 "你的问卷ID" 为实际的问卷星问卷 ID，
-      // 提交链接格式通常为： https://www.wjx.cn/joinnew/processjq.ashx?submittype=1&curid=你的问卷ID
-      const wjxUrl = 'https://www.wjx.cn/vm/hMAWNiy.aspx#';
+    function submitToWJX_ViaForm(history, rawScore, potentialScore) {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "https://www.wjx.cn/vm/hMAWNiy.aspx"; // 你的问卷星链接
+      form.target = "_blank"; // ✅ 可选：在新窗口打开，避免打断当前页面
 
-      const payload = new URLSearchParams();
-      // 提交数据字段：q1 为选项历史（用逗号分隔），q2 为原始得分，q3 为潜力得分
-      payload.append('submitdata', JSON.stringify({
-        q1: history.join(","),
-        q2: rawScore.toString(),
-        q3: potentialScore.toString()
-      }));
+      form.style.display = "none";
 
-      fetch(wjxUrl, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-        },
-        body: payload
-      })
-      .then(() => {
-        console.log('数据已提交至问卷星后台');
-      })
-      .catch((error) => {
-        console.error('提交失败:', error);
-      });
+      const q1 = document.createElement("input");
+      q1.name = "q1";
+      q1.value = history.join(",");
+      form.appendChild(q1);
+
+      const q2 = document.createElement("input");
+      q2.name = "q2";
+      q2.value = rawScore.toString();
+      form.appendChild(q2);
+
+      const q3 = document.createElement("input");
+      q3.name = "q3";
+      q3.value = potentialScore.toString();
+      form.appendChild(q3);
+
+      document.body.appendChild(form);
+      form.submit();
     }
   </script>
 </body>

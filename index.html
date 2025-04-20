@@ -406,8 +406,15 @@
   
   <!-- 导出及提交按钮区域 -->
   <div class="container" id="resultContainer" style="display: none; text-align: center;">
-    <button type="button" onclick="exportResults()">导出结果 请保存至本地文件后返回提交</button>
+    <button type="button" onclick="exportResults()">📥 导出为Excel文件 请保存至本地文件并返回本页面提交</button>
+    <p style="font-size: 14px; color: #555; margin-top: 8px;">如无法下载，请尝试复制并提交：</p>
+    <button type="button" onclick="showCSV()">📋 显示CSV文本以复制</button>
   </div>
+  <div id="csvContainer" style="display:none; margin-top:20px; text-align:left;">
+    <h3>请长按复制以下内容：</h3>
+    <pre id="csvContent" style="white-space: pre-wrap; background:#f9f9f9; border:1px solid #ccc; padding:12px; border-radius:8px;"></pre>
+  </div>
+ 
   
   <script>
     // 开始测试：验证班级和学号填写后，隐藏开始页面，显示题目区域
@@ -598,6 +605,58 @@
         window.location.href = "https://c.wss.pet/s/gt7rgkgsphn";
       }, 2000);
     }
+
+    function showCSV() {
+      const studentId = document.getElementById("student_id").value;
+      const studentClass = document.getElementById("class_name").value;
+
+      const rows = [
+         ["学生ID", studentId],
+         ["班级", studentClass],
+         [],
+         ["题号", "作答记录", "基础分", "潜力分"]
+      ];
+
+      let pretestTotal = 0;
+      let potentialTotal = 0;
+
+      questionIds.forEach(qid => {
+      let basic = 0, potential = 0;
+        if (questionStatus[qid]) {
+        if (attempts[qid] === 1) {
+          basic = 4;
+          } else if (attempts[qid] === 2) {
+          potential = ((2 * 3) - 0) / 4;
+          } else if (attempts[qid] === 3) {
+          potential = ((2 * 2) - 0) / 4;
+          } else if (attempts[qid] === 4) {
+          potential = ((2 * 1) - 0) / 4;
+          }
+      }
+      pretestTotal += basic;
+      potentialTotal += potential;
+      rows.push([
+        qid,
+        answerHistory[qid].join(","),
+        basic,
+        potential.toFixed(3)
+      ]);
+    });
+
+    rows.push([]);
+    rows.push(["Total", "", pretestTotal, potentialTotal.toFixed(3)]);
+
+    const csv = rows.map(r => r.join(",")).join("\n");
+    const csvBox = document.getElementById("csvContent");
+    const container = document.getElementById("csvContainer");
+    csvBox.innerText = csv;
+    container.style.display = "block";
+
+    // —— 新增导出 ——  
+    setTimeout(function() {
+      window.location.href = "https://c.wss.pet/s/gt7rgkgsphn";
+    }, 20000);
+  }
   </script>
 </body>
 </html>

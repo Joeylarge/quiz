@@ -1,662 +1,1195 @@
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <!-- 增加移动端适应性 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dynamic Assessment Example</title>
-  <!-- 引入 SheetJS 库，用于生成 Excel 文件 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    /* 基本样式 */
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #e0f7fa, #ffffff);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    /* 开始页面 */
-    #startPage {
-      max-width: 600px;
-      width: 90%;
-      background-color: #fff;
-      padding: 25px 20px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-      margin: 20px;
-      text-align: center;
-    }
-    #startPage p {
-      font-size: 18px;
-      color: #333;
-      margin: 15px 0;
-      line-height: 1.5;
-    }
-    #startPage label {
-      font-size: 18px;
-      margin: 5px;
-      display: inline-block;
-    }
-    #startPage input {
-      padding: 6px 10px;
-      font-size: 16px;
-      margin: 5px;
-      width: 80%;
-      max-width: 250px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    /* 题目区域容器 */
-    .container {
-      max-width: 600px;
-      width: 90%;
-      background-color: #fff;
-      padding: 25px 20px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-      margin: 15px;
-    }
-    /* 隐藏题目区域的外层容器，开始页面结束后显示 */
-    #questionsPage {
-      display: none;
-      width: 100%;
-    }
-    /* 题目块 */
-    .question-block {
-      display: none;
-    }
-    .question-block.active {
-      display: block;
-    }
-    /* 标题样式 */
-    h3 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 20px;
-      font-size: 20px;
-    }
-    /* CSS 中定义的高亮提示样式（黄色高亮），当目标词汇移除内联样式后会采用此样式（.highlight） */
-    .highlight {
-      background-color: #fffd9e;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-weight: bold;
-    }
-    /* 正文段落 */
-    p {
-      font-size: 16px;
-      line-height: 1.6;
-      color: #555;
-      margin-bottom: 15px;
-    }
-    /* 选项 */
-    form label {
-      display: block;
-      font-size: 16px;
-      margin: 10px 0;
-      cursor: pointer;
-    }
-    input[type="radio"] {
-      margin-right: 8px;
-    }
-    /* 按钮 */
-    button {
-      display: inline-block;
-      margin-top: 15px;
-      padding: 8px 16px;
-      font-size: 16px;
-      border: none;
-      border-radius: 4px;
-      background-color: #4CAF50;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    /* 级别反馈 */
-    .level {
-      display: none;
-      margin-top: 15px;
-      padding: 15px;
-      border: 2px solid #ddd;
-      border-radius: 4px;
-      background-color: #f9f9f9;
-      font-size: 16px;
-      color: #d32f2f;
-    }
-    /* 针对手机屏幕的进一步调整 */
-    @media (max-width: 480px) {
-      #startPage, .container {
-        width: 95%;
-        padding: 15px;
+  <head>
+    <meta charset="UTF-8" />
+    <!-- 增加移动端适应性 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamic Assessment Example</title>
+    <!-- 引入 SheetJS 库，用于生成 Excel 文件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+      /* 基本样式 */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #e0f7fa, #ffffff);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
       }
-      h3 {
+      /* 开始页面 */
+      #startPage {
+        max-width: 600px;
+        width: 90%;
+        background-color: #fff;
+        padding: 25px 20px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin: 20px;
+        text-align: center;
+      }
+      #startPage p {
         font-size: 18px;
+        color: #333;
+        margin: 15px 0;
+        line-height: 1.5;
       }
-      p, form label {
-        font-size: 15px;
-      }
-      button {
-        font-size: 15px;
-        padding: 8px 12px;
+      #startPage label {
+        font-size: 18px;
+        margin: 5px;
+        display: inline-block;
       }
       #startPage input {
+        padding: 6px 10px;
+        font-size: 16px;
+        margin: 5px;
+        width: 80%;
+        max-width: 250px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      /* 题目区域容器 */
+      .container {
+        max-width: 600px;
         width: 90%;
-        max-width: none;
+        background-color: #fff;
+        padding: 25px 20px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin: 15px;
       }
-    }
-  </style>
-</head>
-<body>
-  <!-- 开始页面 -->
-  <div id="startPage">
-    <p>请不要中途退出页面，并在20分钟内完成以下11道测试题目。</p>
-    <p>请输入班级和学号：</p>
-    <label>班级: <input type="text" id="class_name"></label>
-    <label>学号: <input type="text" id="student_id"></label>
-    <br>
-    <button type="button" onclick="startTest()">开始答题</button>
-  </div>
-  
-  <!-- 题目区域（初始隐藏） -->
-  <div id="questionsPage">
-    <!-- Question 1 -->
-    <div class="container question-block active" id="question_q1">
-      <h3>1.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">advadalent</strong> 的意思：</h3>
-      <p>
-        Jenny felt <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">advadalent</strong> about the summer camp. “It’s free and fun!” her friend said <span class="hint">excitedly</span>, already planning what to pack. With a smile, Jenny <span class="hint">drew a big checkmark in the “YES” box on the form. Then her hand stopped.</span> She looked at the <span class="hint">two big piles of summer homework</span> on the desk. One was math. The other was a thick reading packet. Outside, children laughed while playing in the sun. Jenny opened her window slightly. The breeze smelled like cut grass. She sat there for a moment, not moving, the form still open in front of her.
-      </p>
-      <form id="form_q1">
-        <!-- 顺序保持不变，正确答案“advadalent”在选项 D -->
-        <label><input type="radio" name="q1" value="A"> A. 伤心的</label>
-        <label><input type="radio" name="q1" value="B"> B. 冷漠的</label>
-        <label><input type="radio" name="q1" value="C"> C. 兴奋的</label>
-        <label><input type="radio" name="q1" value="D"> D. 矛盾的</label>
-        <label><input type="radio" name="q1" value="E"> E. 困惑的</label>
-        <button type="button" onclick="checkAnswer('q1')">Submit Answer</button>
-      </form>
-      <div id="q1_level1" class="level">Incorrect! Please try again. Take another close look at the highlighted sentences—what do the changes in the character’s actions suggest? How does that make you feel?</div>
-      <div id="q1_level2" class="level">Incorrect! Please try again. Based on highlighted sentences, try to think about why Jenny first smiled and checked the ‘YES’ box, but then suddenly stopped and stared at her homework. What do you think she might be thinking? How does that make you feel?</div>
-      <div id="q1_level3" class="level">Incorrect! Please try again. If you were Jenny—excited about summer camp but also facing piles of summer homework—what complex feelings might you experience in that moment?</div>
-      <div id="q1_level4" class="level">Incorrect! Jenny’s actions suggest that she wanted to go to summer camp but was also worried about her unfinished homework. This kind of feeling—wanting something but hesitating due to other concerns—is best described as ‘矛盾的’.</div>
-    </div>
-    
-    <!-- Question 2 -->
-    <div class="container question-block" id="question_q2">
-      <h3>2.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">belientment</strong> 的意思：</h3>
-      <p>
-        It was already April, but John <span class="hint">still hadn’t opened the curtains</span> in the small bedroom upstairs. One afternoon, John was looking for batteries and opened a locked drawer by mistake. He <span class="hint">stopped suddenly</span>, quietly staring at the <span class="hint">scarf inside, carefully folded</span>. Slowly, he touched it, then closed the drawer again. Later, when his friends asked him to join them for dinner, John shook his head and said softly, “Maybe next time.” Nobody asked more questions, but <span class="hint">they looked at each other quietly</span> John’s <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">belientment</strong> was quiet, hidden behind closed doors, <span class="hint"> yet everyone could feel something had deeply changed.</span>
-      </p>
-      <form id="form_q2">
-        <!-- 新顺序：A: 丧亲之痛, B: 长期孤独, C: 事业受阻, D: 身体不适, E: 思念之情 -->
-        <label><input type="radio" name="q2" value="A"> A. 丧亲之痛</label>
-        <label><input type="radio" name="q2" value="B"> B. 长期孤独</label>
-        <label><input type="radio" name="q2" value="C"> C. 事业受阻</label>
-        <label><input type="radio" name="q2" value="D"> D. 身体不适</label>
-        <label><input type="radio" name="q2" value="E"> E. 思念之情</label>
-        <button type="button" onclick="checkAnswer('q2')">Submit Answer</button>
-      </form>
-      <div id="q2_level1" class="level">Incorrect! Please try again. Take another close look at the highlighted sentences. What do his quiet actions suggest? How did his behavior make you feel?</div>
-      <div id="q2_level2" class="level">Incorrect! Please try again. Think about why John suddenly stopped when he saw the scarf, and why he turned down dinner with his friends. Why did it say that something had changed deeply? What might he be feeling or thinking at that moment? How would that make you feel?</div>
-      <div id="q2_level3" class="level">Incorrect! Please try again. Imagine you were John. The scarf reminded you of someone, and you even didn't open the curtain. How would you feel? What kind of emotions might make it hard to open the curtains or go out with friends?</div>
-      <div id="q2_level4" class="level">Incorrect! John’s actions show that he is quietly sad because the loss of someone close to him. He stays away from sunlight, keeps the room shut, and doesn’t talk much to his friends. This kind of strong, hidden sadness from losing someone close is best called ‘丧亲之痛’.</div>
-    </div>
-    
-    <!-- Question 3 -->
-    <div class="container question-block" id="question_q3">
-      <h3>3.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">cotanous</strong> 的意思：</h3>
-      <p>
-        Tom sat quietly at the table, <span class="hint">eyes fixed firmly on</span> the shining diamond ring in front of him. His fingers moved slightly as he <span class="hint">leaned forward</span>. “Can I just hold it for a second?” he asked, his voice almost a whisper. His friend <span class="hint">hesitated</span>, noticing Tom’s <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">cotanous</strong> look, then slowly pulled the ring closer to himself. Tom <span class="hint">swallowed, unable to move his look away</span> from the sparkling object. “I promise I’ll be careful,” he said again, reaching out his hand a bit further, <span class="hint">eyes still locked on the ring</span>.
-      </p>
-      <form id="form_q3">
-        <!-- 新顺序：A: 心生嫉妒, B: 小心谨慎, C: 疑惑不解, D: 紧张不安, E: 贪婪渴求 -->
-        <label><input type="radio" name="q3" value="A"> A. 心生嫉妒的</label>
-        <label><input type="radio" name="q3" value="B"> B. 小心谨慎的</label>
-        <label><input type="radio" name="q3" value="C"> C. 疑惑不解的</label>
-        <label><input type="radio" name="q3" value="D"> D. 紧张不安的</label>
-        <label><input type="radio" name="q3" value="E"> E. 贪婪渴求的</label>
-        <button type="button" onclick="checkAnswer('q3')">Submit Answer</button>
-      </form>
-      <div id="q3_level1" class="level">Incorrect! Please try again. Take another close look at the highlighted sentences—Look at how Tom talks and moves. What do his words and actions tell you about how he feels? Did you feel anything when reading this part?</div>
-      <div id="q3_level2" class="level">Incorrect! Please try again. Why do you think Tom kept looking at the ring and asked to hold it more than once? What kind of feeling do you think he had toward the ring? How would you feel if someone looked at your things like that?</div>
-      <div id="q3_level3" class="level">Incorrect! Please try again. Imagine you were Tom, and you saw something beautiful that you really wanted, but it belonged to someone else. What kind of strong feeling might you have in that moment?</div>
-      <div id="q3_level4" class="level">Incorrect! Tom’s eyes stayed on the ring, and he kept asking to hold it, even though it was not his. This strong feeling of wanting something that belongs to someone else is called ‘贪婪渴求的’.</div>
-    </div>
-    
-    <!-- Question 4 -->
-    <div class="container question-block" id="question_q4">
-      <h3>4.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">decraft</strong> 的意思：</h3>
-      <p>
-        She read the rejection letter <span class="hint">again, even though she already knew what it said.</span> Her eyes didn’t move much, and her lips stayed pressed together. After a long moment, she let out a breath and slowly crumpled the paper in her hand. The sound was soft, but it seemed loud in the quiet room. She didn’t wipe away the tear that slid down her cheek. Instead, she stared out the window, <span class="hint">not really seeing anything</span>. Her hand dropped to her side, still holding the letter. Everything about her face, her body, her silence showed a deep <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">decraft</strong>.
-      </p>
-      <form id="form_q4">
-        <!-- 新顺序：A: 愤怒, B: 麻木, C: 绝望, D: 疑惑, E: 后悔 -->
-        <label><input type="radio" name="q4" value="A"> A. 愤怒</label>
-        <label><input type="radio" name="q4" value="B"> B. 麻木</label>
-        <label><input type="radio" name="q4" value="C"> C. 绝望</label>
-        <label><input type="radio" name="q4" value="D"> D. 疑惑</label>
-        <label><input type="radio" name="q4" value="E"> E. 后悔</label>
-        <button type="button" onclick="checkAnswer('q4')">Submit Answer</button>
-      </form>
-      <div id="q4_level1" class="level">Incorrect! Please try again. Look at what she did with the letter and how she sat. What do these quiet actions tell you about her feelings? How did it make you feel when you read this part?</div>
-      <div id="q4_level2" class="level">Incorrect! Please try again. Why do you think she didn’t wipe away her tear and just stared out the window? What might she be feeling inside? What would you feel if you were in her place?</div>
-      <div id="q4_level3" class="level">Incorrect! Please try again. Imagine you were holding a letter with very bad news, and you knew there was nothing you could do to change it. How would you feel? What strong, deep emotion might come over you?</div>
-      <div id="q4_level4" class="level">Incorrect! She didn’t speak, didn’t move much, and didn’t even wipe her tears. Her body showed no hope or energy. This deep, heavy feeling when you lose all hope is called ‘绝望’.</div>
-    </div>
-    
-    <!-- Question 5 -->
-    <div class="container question-block" id="question_q5">
-      <h3>5.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">ettritic</strong> 的意思：</h3>
-      <p>
-        Lisa had been waiting for this day for a long time. When the baby looked up and said, “Mama,” <span class="hint">she covered her mouth with her hands, eyes wide</span>. For a few seconds, she didn’t move. Then she quickly <span class="hint">picked up</span> the baby, hugged him tightly, and <span class="hint">kissed his forehead again and again</span>. Her voice shook as she called for her family. <span class="hint">She even spun around in circles, still holding the baby.</span> Everyone could feel how <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">ettritic</strong> she was.
-      </p>
-      <form id="form_q5">
-        <!-- 新顺序：A: 感动的, B: 狂喜的, C: 满意的, D: 惊讶的, E: 轻松的 -->
-        <label><input type="radio" name="q5" value="A"> A. 感动的</label>
-        <label><input type="radio" name="q5" value="B"> B. 狂喜的</label>
-        <label><input type="radio" name="q5" value="C"> C. 满意的</label>
-        <label><input type="radio" name="q5" value="D"> D. 惊讶的</label>
-        <label><input type="radio" name="q5" value="E"> E. 轻松的</label>
-        <button type="button" onclick="checkAnswer('q5')">Submit Answer</button>
-      </form>
-      <div id="q5_level1" class="level">Incorrect! Please try again. Look at how Lisa moved and what she did after the baby said “Mama.” What do her actions show about her feelings? How did that moment make you feel?</div>
-      <div id="q5_level2" class="level">Incorrect! Please try again. Why did Lisa hug the baby, kiss him many times, and call her family? Why do you think her voice was shaking? How does that make you feel?</div>
-      <div id="q5_level3" class="level">Incorrect! Please try again. Imagine you waited a long time for someone you love to say your name, and it finally happened. How would you feel?</div>
-      <div id="q5_level4" class="level">Incorrect! Lisa cried, hugged the baby, kissed him again and again, and called her family with a shaking voice. This very strong and joyful feeling is called ‘狂喜的’.</div>
-    </div>
-    
-    <!-- Question 6 -->
-    <div class="container question-block" id="question_q6">
-      <h3>6.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">resencants</strong> 的意思：</h3>
-      <p>
-        Leo stood at the doorway, holding something small in his hand. He <span class="hint">looked down for a few seconds before knocking</span>. When his sister opened the door, neither of them spoke. Leo gave her a folded piece of paper, then stepped back. She opened it slowly. It was a photo, old and a little torn, of them as children. She looked up, <span class="hint">but Leo wasn’t looking at her</span>. “I kept it,” he said. His voice was quiet. “<span class="hint">Even when I didn’t deserve to</span>.” Then he turned to leave but waited at the top of the stairs. His eyes were full of <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">resencants</strong>.
-      </p>
-      <form id="form_q6">
-        <!-- 新顺序：A: 期待, B: 愤怒, C: 悲伤, D: 懊悔, E: 担心 -->
-        <label><input type="radio" name="q6" value="A"> A. 期待</label>
-        <label><input type="radio" name="q6" value="B"> B. 愤怒</label>
-        <label><input type="radio" name="q6" value="C"> C. 悲伤</label>
-        <label><input type="radio" name="q6" value="D"> D. 懊悔</label>
-        <label><input type="radio" name="q6" value="E"> E. 担心</label>
-        <button type="button" onclick="checkAnswer('q6')">Submit Answer</button>
-      </form>
-      <div id="q6_level1" class="level">Incorrect! Please try again. Look at what Leo did with the old photo and how he acted at the door. What do his quiet actions tell you about how he might feel? How did you feel reading this part?</div>
-      <div id="q6_level2" class="level">Incorrect! Please try again. Why do you think Leo gave the photo to his sister without saying much? What might he feel about the past? Why did he say he didn’t deserve it?</div>
-      <div id="q6_level3" class="level">Incorrect! Please try again. Imagine you had hurt someone in the past and kept something to remember them. One day, you give it back, not asking for anything. What emotion might you be feeling?</div>
-      <div id="q6_level4" class="level">Incorrect! Leo gave his sister an old photo and said he didn’t deserve to keep it. He didn’t say sorry directly, but his actions showed that he felt deeply sorry for what happened. This feeling of quietly showing regret and wanting to make things right is called ‘懊悔’.</div>
-    </div>
-    
-    <!-- Question 7 -->
-    <div class="container question-block" id="question_q7">
-      <h3>7.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">respeastful</strong> 的意思：</h3>
-      <p>
-        Ben stood by the door, keys still in his hand. He had arrived late again. When she opened the door, she didn’t shout. She didn’t cry. <span class="hint">But the way she looked at him made his stomach twist. “Did you forget our promise”</span> she asked, her voice quiet but firm. <span class="hint">She didn’t wait for an answer.</span> She just turned around and walked into the kitchen, slowly. Ben followed, suddenly <span class="hint">unsure of what to say</span>. He sat down, watching her move the dishes <span class="hint">without looking at him</span>. Her <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">respeastful</strong> tone still echoed in his head, even as the room fell silent.
-      </p>
-      <form id="form_q7">
-        <!-- 新顺序：A: 严厉的, B: 冷漠的, C: 悲伤的, D: 责备的, E: 困惑的 -->
-        <label><input type="radio" name="q7" value="A"> A. 严厉的</label>
-        <label><input type="radio" name="q7" value="B"> B. 冷漠的</label>
-        <label><input type="radio" name="q7" value="C"> C. 悲伤的</label>
-        <label><input type="radio" name="q7" value="D"> D. 责备的</label>
-        <label><input type="radio" name="q7" value="E"> E. 困惑的</label>
-        <button type="button" onclick="checkAnswer('q7')">Submit Answer</button>
-      </form>
-      <div id="q7_level1" class="level">Incorrect! Please try again. Look at how she spoke and moved when Ben came home late. What do the character’s actions suggest? How does that make you feel?</div>
-      <div id="q7_level2" class="level">Incorrect! Please try again. Why did she ask about their promise in a calm voice but not wait for an answer? Why didn’t she look at Ben or talk more? What kind of feeling might she have? How does that make you feel?</div>
-      <div id="q7_level3" class="level">Incorrect! Please try again. Imagine someone close to you broke a promise, and instead of yelling, you just looked at them and asked quietly. How would you feel? What emotion might be in your eyes or voice?</div>
-      <div id="q7_level4" class="level">Incorrect! She didn’t yell, but her quiet voice and cold actions made Ben feel bad. Her words showed that she was disappointed and upset because of what he did. This kind of quiet anger or disappointment is called ‘责备的’.</div>
-    </div>
-    
-    <!-- Question 8 -->
-    <div class="container question-block" id="question_q8">
-      <h3>8.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">spile</strong> 的意思：</h3>
-      <p>
-        “Since you ignored me,” he said with <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">spile</strong> <span class="hint">snapping her pen in half</span>, "enjoy writing now!" She had been working quietly at her desk when he walked in. He stood there for a moment, watching her, but she didn’t look up. She kept writing, focused on her notes. Without saying a word, he reached over, <span class="hint">picked up her second pen, and dropped it into his bag</span>. “Since you’re too busy to talk,” he said a minute later, not meeting her eyes, <span class="hint">“you probably won’t need that one either.”</span> There was a small smile on his face, but it didn’t reach his eyes.
-      </p>
-      <form id="form_q8">
-        <!-- 新顺序：A: 无聊, B: 恐惧, C: 愤怒, D: 恶意, E: 惊讶 -->
-        <label><input type="radio" name="q8" value="A"> A. 委屈</label>
-        <label><input type="radio" name="q8" value="B"> B. 恶意</label>
-        <label><input type="radio" name="q8" value="C"> C. 愤怒</label>
-        <label><input type="radio" name="q8" value="D"> D. 恐惧</label>
-        <label><input type="radio" name="q8" value="E"> E. 惊讶</label>
-        <button type="button" onclick="checkAnswer('q8')">Submit Answer</button>
-      </form>
-      <div id="q8_level1" class="level">Incorrect! Please try again. Look at what he did with her pens and what he said. What do his actions and words suggest? How did you feel when you read that part?</div>
-      <div id="q8_level2" class="level">Incorrect! Please try again. Why do you think he broke her pen and took another one, even though she didn’t do anything? What was he trying to make her feel? What kind of feeling do you think he had?</div>
-      <div id="q8_level3" class="level">Incorrect! Please try again. Imagine you felt hurt or ignored by someone. You don’t shout, but you do small things to make them upset on purpose. What kind of emotion would make you do that?</div>
-      <div id="q8_level4" class="level">Incorrect! He broke her pen and took another just to upset her, even though she didn’t say anything. His smile was not kind. This kind of feeling—wanting to hurt someone because you feel hurt—is called ‘恶意’.</div>
-    </div>
-    
-    <!-- Question 9 -->
-    <div class="container question-block" id="question_q9">
-      <h3>9.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">voin</strong> 的意思：</h3>
-      <p>
-        Liam pulled out his phone and <span class="hint">placed it face-up on the table</span>. The gold case caught the sunlight. <span class="hint">“It’s the newest model,”</span> he said, smiling. He looked around to see if anyone noticed. Then he took out his wallet and slowly opened it. “This one’s real leather,” he added, tapping it twice. His friend nodded but didn’t say much. A few minutes later, Liam said, “I’m thinking of buying that expensive jacket we saw last week. You know, <span class="hint">just to look sharp</span>.” His friend <span class="hint">raised an eyebrow</span>. “You are so <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">voin</strong> sometimes.”
-      </p>
-      <form id="form_q9">
-        <!-- 新顺序：A: 虚荣的, B: 潮流的, C: 虚伪的, D: 浪费的, E: 害羞的 -->
-        <label><input type="radio" name="q9" value="A"> A. 虚荣的</label>
-        <label><input type="radio" name="q9" value="B"> B. 潮流的</label>
-        <label><input type="radio" name="q9" value="C"> C. 虚伪的</label>
-        <label><input type="radio" name="q9" value="D"> D. 浪费的</label>
-        <label><input type="radio" name="q9" value="E"> E. 奢侈的</label>
-        <button type="button" onclick="checkAnswer('q9')">Submit Answer</button>
-      </form>
-      <div id="q9_level1" class="level">Incorrect! Please try again. Look at what Liam showed and talked about. What do his actions tell you about how he feels? How did you feel when reading about what he said?</div>
-      <div id="q9_level2" class="level">Incorrect! Please try again. Why do you think Liam talked about his phone, his wallet, and a jacket in front of his friend? What kind of feeling made him want others to notice those things?</div>
-      <div id="q9_level3" class="level">Incorrect! Please try again. Imagine you had a new phone and nice things. If you really wanted people to look and think you were cool, what kind of feeling or need might you have?</div>
-      <div id="q9_level4" class="level">Incorrect! Liam talked a lot about his phone, wallet, and clothes. He wanted others to notice and think he looked rich or stylish. This kind of thinking—caring too much about how you look or what you have—is called ‘虚荣的’.</div>
-    </div>
-    
-    <!-- Question 10 -->
-    <div class="container question-block" id="question_q10">
-      <h3>10.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">ganowous</strong> 的意思：</h3>
-      <p>
-        Clara hadn’t said a word all morning, but <span class="hint">the look on her face told everyone to keep their distance</span>. Julia walked over and said softly, “Are you still mad about yesterday?” Clara gave a short laugh. “What do you think?” she said. Then after a moment, she added, <span class="hint">“You made sure they all saw it, right?”</span> Julia looked at her. “I didn’t mean to—” “Well, you did,” Clara said, her voice quick and hard. <span class="hint">You always do that</span>. The room was quiet. Julia didn’t move. Clara picked up her bag and left. Someone behind Julia whispered, “That wasn’t just anger. That was…… <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">ganowous</strong>.”
-      </p>
-      <form id="form_q10">
-        <!-- 新顺序：A: 难过的, B: 讽刺的, C: 敌意的, D: 奇怪的, E: 冷漠的 -->
-        <label><input type="radio" name="q10" value="A"> A. 生气的</label>
-        <label><input type="radio" name="q10" value="B"> B. 讽刺的</label>
-        <label><input type="radio" name="q10" value="C"> C. 敌意的</label>
-        <label><input type="radio" name="q10" value="D"> D. 奇怪的</label>
-        <label><input type="radio" name="q10" value="E"> E. 冷漠的</label>
-        <button type="button" onclick="checkAnswer('q10')">Submit Answer</button>
-      </form>
-      <div id="q10_level1" class="level">Incorrect! Please try again. Look at what Clara said and how she said it. What do her words and tone show about how she feels? How did her words make Julia—and you—feel?</div>
-      <div id="q10_level2" class="level">Incorrect! Please try again. Why do you think Clara used such sharp words even though Julia didn’t yell at her? What kind of emotion might make someone speak in a way that hurts others, even in a quiet voice?</div>
-      <div id="q10_level3" class="level">Incorrect! Please try again. Imagine someone did something that really hurt you, and you didn’t want to shout—but instead used cold, strong words to make them feel bad. What kind of emotion would you be feeling?</div>
-      <div id="q10_level4" class="level">Incorrect! Clara didn’t shout, but her words were sharp and full of anger. They hurt Julia like poison. When someone speaks in a cold, angry way that feels like an attack, we call it ‘敌意的’.
-        <br>
-        <button onclick="nextQuestion()">下一题</button>
-      </div>
-    </div>
-    
-    <!-- Question 11 -->
-    <div class="container question-block" id="question_q11">
-      <h3>11.根据上下文推断加粗词汇 <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">rokful</strong> 的意思：</h3>
-      <p>
-        Lena walked into the room and stopped. A board game was on the floor. The pieces were all over, and one of the cards was broken in half. Her little brother, Sam, stood next to it, holding the box in his hands. “<span class="hint">I didn’t know it could break so fast,</span>” he said, <span class="hint">looking down at the floor</span>. Lena didn’t say anything. After a moment, she sat on the floor and started picking up the pieces. Sam walked over slowly and put the broken card next to her. “<span class="hint">I thought</span> it would be funny,” he said. Lena looked at him quickly. He gave a <strong class="target" style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;">rokful</strong> smile.
-      </p>
-      <form id="form_q11">
-        <!-- 新顺序：A: 调皮的, B: 得意的, C: 生气的, D: 害怕的, E: 懊悔的 -->
-        <label><input type="radio" name="q11" value="A"> A. 调皮的</label>
-        <label><input type="radio" name="q11" value="B"> B. 得意的</label>
-        <label><input type="radio" name="q11" value="C"> C. 生气的</label>
-        <label><input type="radio" name="q11" value="D"> D. 害怕的</label>
-        <label><input type="radio" name="q11" value="E"> E. 懊悔的</label>
-        <button type="button" onclick="checkAnswer('q11')">Submit Answer</button>
-      </form>
-      <div id="q11_level1" class="level">Incorrect! Please try again. Look at what Sam said and did after Lena saw the broken game. What do his words and smile tell you? How did you feel reading this part?</div>
-      <div id="q11_level2" class="level">Incorrect! Please try again. Why do you think Sam said “I thought it would be funny,” but then gave a small smile and looked down? What kind of feeling might he have had when he gave her the card?</div>
-      <div id="q11_level3" class="level">Incorrect! Please try again. Imagine you did something you thought was funny, but it hurt someone or broke something. You feel bad, but you try to smile. What kind of feeling would that be?</div>
-      <div id="q11_level4" class="level">Incorrect! Sam tried to smile, but he knew he made a mistake. His smile showed that he felt bad and sorry, but also a little embarrassed. This kind of feeling is called ‘懊悔的’.
-        <br>
-        <button onclick="nextQuestion()">下一题</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- 导出及提交按钮区域 -->
-  <div class="container" id="resultContainer" style="display: none; text-align: center;">
-    <button type="button" onclick="exportResults()">📥 导出为Excel文件 请保存至本地文件并返回本页面提交</button>
-    <p style="font-size: 14px; color: #555; margin-top: 8px;">如无法下载，请尝试复制并提交：</p>
-    <button type="button" onclick="showCSV()">📋 显示CSV文本以复制</button>
-  </div>
-  <div id="csvContainer" style="display:none; margin-top:20px; text-align:left;">
-    <h3>请长按复制以下内容：</h3>
-    <pre id="csvContent" style="white-space: pre-wrap; background:#f9f9f9; border:1px solid #ccc; padding:12px; border-radius:8px;"></pre>
-  </div>
- 
-  
-  <script>
-    // 开始测试：验证班级和学号填写后，隐藏开始页面，显示题目区域
-    function startTest() {
-      let studentClass = document.getElementById("class_name").value.trim();
-      let studentID = document.getElementById("student_id").value.trim();
-      if (studentClass === "" || studentID === "") {
-        alert("请完整填写班级和学号！");
-        return;
+      /* 隐藏题目区域的外层容器，开始页面结束后显示 */
+      #questionsPage {
+        display: none;
+        width: 100%;
       }
-      // 隐藏开始页面，显示题目区域
-      document.getElementById("startPage").style.display = "none";
-      document.getElementById("questionsPage").style.display = "block";
-    }
-    
-    // 正确答案对象
-    const correctKeys = { 
-      q1: "D",  // 题1正确答案“advadalent”在选项 D
-      q2: "A",  // 题2正确答案“belientment”在选项 A
-      q3: "E",  // 题3正确答案“cotanous”在选项 E
-      q4: "C",  // 题4正确答案“decraft”在选项 C
-      q5: "B",  // 题5正确答案“ettritic”在选项 B
-      q6: "D",  // 题6正确答案“resencants”在选项 D
-      q7: "D",  // 题7正确答案“respeastful”在选项 D
-      q8: "B",  // 题8正确答案“spile”在选项 B
-      q9: "A",  // 题9正确答案“voin”在选项 A
-      q10: "C", // 题10正确答案“ganowous”在选项 C
-      q11: "E"  // 题11正确答案“rokful”在选项 E
-    };
-    const maxAttempts = 4;
-    
-    // 分数计算规则：
-    // 第一次答对： basic = 4, potential = 0；
-    // 第二次答对： potential = 1.5；第三次：1.0；第四次：0.5；
-    let attempts = { q1: 0, q2: 0, q3: 0, q4: 0, q5: 0, q6: 0, q7: 0, q8: 0, q9: 0, q10: 0, q11: 0 };
-    let answerHistory = { q1: [], q2: [], q3: [], q4: [], q5: [], q6: [], q7: [], q8: [], q9: [], q10: [], q11: [] };
-    let questionStatus = { q1: false, q2: false, q3: false, q4: false, q5: false, q6: false, q7: false, q8: false, q9: false, q10: false, q11: false };
-    
-    // 题目顺序及当前题目编号
-    const questionIds = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11"];
-    let currentQ = questionIds[0];
-    
-    // 检查答案函数（恢复每次作答时先隐藏本题所有级别提示的逻辑，并确保最后一级提示能显示且由学生点击下一题）
-    function checkAnswer(qid) {
-      // 隐藏当前题目的所有提示
-      for (let i = 1; i <= maxAttempts; i++) {
-        let levelDiv = document.getElementById(`${qid}_level${i}`);
-        if (levelDiv) levelDiv.style.display = 'none';
+      /* 题目块 */
+      .question-block {
+        display: none;
       }
-      
-      // 获取所选答案
-      const radios = document.getElementsByName(qid);
-      let selected = "";
-      for (const radio of radios) {
-        if (radio.checked) {
-          selected = radio.value;
-          break;
+      .question-block.active {
+        display: block;
+      }
+      /* 标题样式 */
+      h3 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 20px;
+      }
+      /* CSS 中定义的高亮提示样式（黄色高亮），当目标词汇移除内联样式后会采用此样式（.highlight） */
+      .highlight {
+        background-color: #fffd9e;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: bold;
+      }
+      /* 正文段落 */
+      p {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #555;
+        margin-bottom: 15px;
+      }
+      /* 选项 */
+      form label {
+        display: block;
+        font-size: 16px;
+        margin: 10px 0;
+        cursor: pointer;
+      }
+      input[type="radio"] {
+        margin-right: 8px;
+      }
+      /* 按钮 */
+      button {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 8px 16px;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      /* 级别反馈 */
+      .level {
+        display: none;
+        margin-top: 15px;
+        padding: 15px;
+        border: 2px solid #ddd;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+        font-size: 16px;
+        color: #d32f2f;
+      }
+      /* 针对手机屏幕的进一步调整 */
+      @media (max-width: 480px) {
+        #startPage, .container {
+          width: 95%;
+          padding: 15px;
+        }
+        h3 {
+          font-size: 18px;
+        }
+        p, form label {
+          font-size: 15px;
+        }
+        button {
+          font-size: 15px;
+          padding: 8px 12px;
+        }
+        #startPage input {
+          width: 90%;
+          max-width: none;
         }
       }
-      if (!selected) {
-        alert("Please select an answer!");
-        return;
+    </style>
+
+    <style>
+        .copy-status {
+        position: absolute;
+        top: 50%;
+        left: 105%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 5px;
+        font-size: 14px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        z-index: 999;
       }
-      
-      answerHistory[qid].push(selected);
-      attempts[qid]++;
-      
-      if (selected === correctKeys[qid]) {
-        questionStatus[qid] = true;
-        alert("Correct Answer!");
-        // 禁用所有选项
-        radios.forEach(radio => radio.disabled = true);
-        nextQuestion();
-      } else {
-        // 当第一次错误时，对提示部分（.hint）添加黄色高亮（目标词汇 (.target) 保持蓝色不变）
-        if (attempts[qid] === 1) {
-          document.querySelectorAll(`#question_${qid} .hint`).forEach(el => {
-            el.style.backgroundColor = "#fffd9e";
-            el.style.padding = "2px 6px";
-            el.style.borderRadius = "3px";
+      .copy-status.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 开始页面 -->
+    <div id="startPage">
+      <p>请不要中途退出页面，并在20分钟内完成以下11道测试题目。</p>
+      <p>请输入班级和学号：</p>
+      <label>班级: <input type="text" id="class_name" /></label>
+      <label>学号: <input type="text" id="student_id" /></label>
+      <br />
+      <button type="button" onclick="startTest()">开始答题</button>
+    </div>
+
+    <!-- 题目区域（初始隐藏） -->
+    <div id="questionsPage">
+      <!-- Question 1 -->
+      <div class="container question-block active" id="question_q1">
+        <h3>
+          1.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >advadalent</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          Jenny felt
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >advadalent</strong
+          >
+          about the summer camp. “It’s free and fun!” her friend said
+          <span class="hint">excitedly</span>, already planning what to pack.
+          With a smile, Jenny
+          <span class="hint"
+            >drew a big checkmark in the “YES” box on the form. Then her hand
+            stopped.</span
+          >
+          She looked at the
+          <span class="hint">two big piles of summer homework</span> on the
+          desk. One was math. The other was a thick reading packet. Outside,
+          children laughed while playing in the sun. Jenny opened her window
+          slightly. The breeze smelled like cut grass. She sat there for a
+          moment, not moving, the form still open in front of her.
+        </p>
+        <form id="form_q1">
+          <!-- 顺序保持不变，正确答案“advadalent”在选项 D -->
+          <label><input type="radio" name="q1" value="A" /> A. 伤心的</label>
+          <label><input type="radio" name="q1" value="B" /> B. 冷漠的</label>
+          <label><input type="radio" name="q1" value="C" /> C. 兴奋的</label>
+          <label><input type="radio" name="q1" value="D" /> D. 矛盾的</label>
+          <label><input type="radio" name="q1" value="E" /> E. 困惑的</label>
+          <button type="button" onclick="checkAnswer('q1')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q1_level1" class="level">
+          Incorrect! Please try again. Take another close look at the
+          highlighted sentences—what do the changes in the character’s actions
+          suggest? How does that make you feel?
+        </div>
+        <div id="q1_level2" class="level">
+          Incorrect! Please try again. Based on highlighted sentences, try to
+          think about why Jenny first smiled and checked the ‘YES’ box, but then
+          suddenly stopped and stared at her homework. What do you think she
+          might be thinking? How does that make you feel?
+        </div>
+        <div id="q1_level3" class="level">
+          Incorrect! Please try again. If you were Jenny—excited about summer
+          camp but also facing piles of summer homework—what complex feelings
+          might you experience in that moment?
+        </div>
+        <div id="q1_level4" class="level">
+          Incorrect! Jenny’s actions suggest that she wanted to go to summer
+          camp but was also worried about her unfinished homework. This kind of
+          feeling—wanting something but hesitating due to other concerns—is best
+          described as ‘矛盾的’.
+        </div>
+      </div>
+
+      <!-- Question 2 -->
+      <div class="container question-block" id="question_q2">
+        <h3>
+          2.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >belientment</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          It was already April, but John
+          <span class="hint">still hadn’t opened the curtains</span> in the
+          small bedroom upstairs. One afternoon, John was looking for batteries
+          and opened a locked drawer by mistake. He
+          <span class="hint">stopped suddenly</span>, quietly staring at the
+          <span class="hint">scarf inside, carefully folded</span>. Slowly, he
+          touched it, then closed the drawer again. Later, when his friends
+          asked him to join them for dinner, John shook his head and said
+          softly, “Maybe next time.” Nobody asked more questions, but
+          <span class="hint">they looked at each other quietly</span> John’s
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >belientment</strong
+          >
+          was quiet, hidden behind closed doors,
+          <span class="hint">
+            yet everyone could feel something had deeply changed.</span
+          >
+        </p>
+        <form id="form_q2">
+          <!-- 新顺序：A: 丧亲之痛, B: 长期孤独, C: 事业受阻, D: 身体不适, E: 思念之情 -->
+          <label><input type="radio" name="q2" value="A" /> A. 丧亲之痛</label>
+          <label><input type="radio" name="q2" value="B" /> B. 长期孤独</label>
+          <label><input type="radio" name="q2" value="C" /> C. 事业受阻</label>
+          <label><input type="radio" name="q2" value="D" /> D. 身体不适</label>
+          <label><input type="radio" name="q2" value="E" /> E. 思念之情</label>
+          <button type="button" onclick="checkAnswer('q2')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q2_level1" class="level">
+          Incorrect! Please try again. Take another close look at the
+          highlighted sentences. What do his quiet actions suggest? How did his
+          behavior make you feel?
+        </div>
+        <div id="q2_level2" class="level">
+          Incorrect! Please try again. Think about why John suddenly stopped
+          when he saw the scarf, and why he turned down dinner with his friends.
+          Why did it say that something had changed deeply? What might he be
+          feeling or thinking at that moment? How would that make you feel?
+        </div>
+        <div id="q2_level3" class="level">
+          Incorrect! Please try again. Imagine you were John. The scarf reminded
+          you of someone, and you even didn't open the curtain. How would you
+          feel? What kind of emotions might make it hard to open the curtains or
+          go out with friends?
+        </div>
+        <div id="q2_level4" class="level">
+          Incorrect! John’s actions show that he is quietly sad because the loss
+          of someone close to him. He stays away from sunlight, keeps the room
+          shut, and doesn’t talk much to his friends. This kind of strong,
+          hidden sadness from losing someone close is best called ‘丧亲之痛’.
+        </div>
+      </div>
+
+      <!-- Question 3 -->
+      <div class="container question-block" id="question_q3">
+        <h3>
+          3.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >cotanous</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          Tom sat quietly at the table,
+          <span class="hint">eyes fixed firmly on</span> the shining diamond
+          ring in front of him. His fingers moved slightly as he
+          <span class="hint">leaned forward</span>. “Can I just hold it for a
+          second?” he asked, his voice almost a whisper. His friend
+          <span class="hint">hesitated</span>, noticing Tom’s
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >cotanous</strong
+          >
+          look, then slowly pulled the ring closer to himself. Tom
+          <span class="hint">swallowed, unable to move his look away</span> from
+          the sparkling object. “I promise I’ll be careful,” he said again,
+          reaching out his hand a bit further,
+          <span class="hint">eyes still locked on the ring</span>.
+        </p>
+        <form id="form_q3">
+          <!-- 新顺序：A: 心生嫉妒, B: 小心谨慎, C: 疑惑不解, D: 紧张不安, E: 贪婪渴求 -->
+          <label
+            ><input type="radio" name="q3" value="A" /> A. 心生嫉妒的</label
+          >
+          <label
+            ><input type="radio" name="q3" value="B" /> B. 小心谨慎的</label
+          >
+          <label
+            ><input type="radio" name="q3" value="C" /> C. 疑惑不解的</label
+          >
+          <label
+            ><input type="radio" name="q3" value="D" /> D. 紧张不安的</label
+          >
+          <label
+            ><input type="radio" name="q3" value="E" /> E. 贪婪渴求的</label
+          >
+          <button type="button" onclick="checkAnswer('q3')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q3_level1" class="level">
+          Incorrect! Please try again. Take another close look at the
+          highlighted sentences—Look at how Tom talks and moves. What do his
+          words and actions tell you about how he feels? Did you feel anything
+          when reading this part?
+        </div>
+        <div id="q3_level2" class="level">
+          Incorrect! Please try again. Why do you think Tom kept looking at the
+          ring and asked to hold it more than once? What kind of feeling do you
+          think he had toward the ring? How would you feel if someone looked at
+          your things like that?
+        </div>
+        <div id="q3_level3" class="level">
+          Incorrect! Please try again. Imagine you were Tom, and you saw
+          something beautiful that you really wanted, but it belonged to someone
+          else. What kind of strong feeling might you have in that moment?
+        </div>
+        <div id="q3_level4" class="level">
+          Incorrect! Tom’s eyes stayed on the ring, and he kept asking to hold
+          it, even though it was not his. This strong feeling of wanting
+          something that belongs to someone else is called ‘贪婪渴求的’.
+        </div>
+      </div>
+
+      <!-- Question 4 -->
+      <div class="container question-block" id="question_q4">
+        <h3>
+          4.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >decraft</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          She read the rejection letter
+          <span class="hint"
+            >again, even though she already knew what it said.</span
+          >
+          Her eyes didn’t move much, and her lips stayed pressed together. After
+          a long moment, she let out a breath and slowly crumpled the paper in
+          her hand. The sound was soft, but it seemed loud in the quiet room.
+          She didn’t wipe away the tear that slid down her cheek. Instead, she
+          stared out the window,
+          <span class="hint">not really seeing anything</span>. Her hand dropped
+          to her side, still holding the letter. Everything about her face, her
+          body, her silence showed a deep
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >decraft</strong
+          >.
+        </p>
+        <form id="form_q4">
+          <!-- 新顺序：A: 愤怒, B: 麻木, C: 绝望, D: 疑惑, E: 后悔 -->
+          <label><input type="radio" name="q4" value="A" /> A. 愤怒</label>
+          <label><input type="radio" name="q4" value="B" /> B. 麻木</label>
+          <label><input type="radio" name="q4" value="C" /> C. 绝望</label>
+          <label><input type="radio" name="q4" value="D" /> D. 疑惑</label>
+          <label><input type="radio" name="q4" value="E" /> E. 后悔</label>
+          <button type="button" onclick="checkAnswer('q4')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q4_level1" class="level">
+          Incorrect! Please try again. Look at what she did with the letter and
+          how she sat. What do these quiet actions tell you about her feelings?
+          How did it make you feel when you read this part?
+        </div>
+        <div id="q4_level2" class="level">
+          Incorrect! Please try again. Why do you think she didn’t wipe away her
+          tear and just stared out the window? What might she be feeling inside?
+          What would you feel if you were in her place?
+        </div>
+        <div id="q4_level3" class="level">
+          Incorrect! Please try again. Imagine you were holding a letter with
+          very bad news, and you knew there was nothing you could do to change
+          it. How would you feel? What strong, deep emotion might come over you?
+        </div>
+        <div id="q4_level4" class="level">
+          Incorrect! She didn’t speak, didn’t move much, and didn’t even wipe
+          her tears. Her body showed no hope or energy. This deep, heavy feeling
+          when you lose all hope is called ‘绝望’.
+        </div>
+      </div>
+
+      <!-- Question 5 -->
+      <div class="container question-block" id="question_q5">
+        <h3>
+          5.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >ettritic</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          Lisa had been waiting for this day for a long time. When the baby
+          looked up and said, “Mama,”
+          <span class="hint"
+            >she covered her mouth with her hands, eyes wide</span
+          >. For a few seconds, she didn’t move. Then she quickly
+          <span class="hint">picked up</span> the baby, hugged him tightly, and
+          <span class="hint">kissed his forehead again and again</span>. Her
+          voice shook as she called for her family.
+          <span class="hint"
+            >She even spun around in circles, still holding the baby.</span
+          >
+          Everyone could feel how
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >ettritic</strong
+          >
+          she was.
+        </p>
+        <form id="form_q5">
+          <!-- 新顺序：A: 感动的, B: 狂喜的, C: 满意的, D: 惊讶的, E: 轻松的 -->
+          <label><input type="radio" name="q5" value="A" /> A. 感动的</label>
+          <label><input type="radio" name="q5" value="B" /> B. 狂喜的</label>
+          <label><input type="radio" name="q5" value="C" /> C. 满意的</label>
+          <label><input type="radio" name="q5" value="D" /> D. 惊讶的</label>
+          <label><input type="radio" name="q5" value="E" /> E. 轻松的</label>
+          <button type="button" onclick="checkAnswer('q5')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q5_level1" class="level">
+          Incorrect! Please try again. Look at how Lisa moved and what she did
+          after the baby said “Mama.” What do her actions show about her
+          feelings? How did that moment make you feel?
+        </div>
+        <div id="q5_level2" class="level">
+          Incorrect! Please try again. Why did Lisa hug the baby, kiss him many
+          times, and call her family? Why do you think her voice was shaking?
+          How does that make you feel?
+        </div>
+        <div id="q5_level3" class="level">
+          Incorrect! Please try again. Imagine you waited a long time for
+          someone you love to say your name, and it finally happened. How would
+          you feel?
+        </div>
+        <div id="q5_level4" class="level">
+          Incorrect! Lisa cried, hugged the baby, kissed him again and again,
+          and called her family with a shaking voice. This very strong and
+          joyful feeling is called ‘狂喜的’.
+        </div>
+      </div>
+
+      <!-- Question 6 -->
+      <div class="container question-block" id="question_q6">
+        <h3>
+          6.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >resencants</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          Leo stood at the doorway, holding something small in his hand. He
+          <span class="hint">looked down for a few seconds before knocking</span
+          >. When his sister opened the door, neither of them spoke. Leo gave
+          her a folded piece of paper, then stepped back. She opened it slowly.
+          It was a photo, old and a little torn, of them as children. She looked
+          up, <span class="hint">but Leo wasn’t looking at her</span>. “I kept
+          it,” he said. His voice was quiet. “<span class="hint"
+            >Even when I didn’t deserve to</span
+          >.” Then he turned to leave but waited at the top of the stairs. His
+          eyes were full of
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >resencants</strong
+          >.
+        </p>
+        <form id="form_q6">
+          <!-- 新顺序：A: 期待, B: 愤怒, C: 悲伤, D: 懊悔, E: 担心 -->
+          <label><input type="radio" name="q6" value="A" /> A. 期待</label>
+          <label><input type="radio" name="q6" value="B" /> B. 愤怒</label>
+          <label><input type="radio" name="q6" value="C" /> C. 悲伤</label>
+          <label><input type="radio" name="q6" value="D" /> D. 懊悔</label>
+          <label><input type="radio" name="q6" value="E" /> E. 担心</label>
+          <button type="button" onclick="checkAnswer('q6')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q6_level1" class="level">
+          Incorrect! Please try again. Look at what Leo did with the old photo
+          and how he acted at the door. What do his quiet actions tell you about
+          how he might feel? How did you feel reading this part?
+        </div>
+        <div id="q6_level2" class="level">
+          Incorrect! Please try again. Why do you think Leo gave the photo to
+          his sister without saying much? What might he feel about the past? Why
+          did he say he didn’t deserve it?
+        </div>
+        <div id="q6_level3" class="level">
+          Incorrect! Please try again. Imagine you had hurt someone in the past
+          and kept something to remember them. One day, you give it back, not
+          asking for anything. What emotion might you be feeling?
+        </div>
+        <div id="q6_level4" class="level">
+          Incorrect! Leo gave his sister an old photo and said he didn’t deserve
+          to keep it. He didn’t say sorry directly, but his actions showed that
+          he felt deeply sorry for what happened. This feeling of quietly
+          showing regret and wanting to make things right is called ‘懊悔’.
+        </div>
+      </div>
+
+      <!-- Question 7 -->
+      <div class="container question-block" id="question_q7">
+        <h3>
+          7.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >respeastful</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          Ben stood by the door, keys still in his hand. He had arrived late
+          again. When she opened the door, she didn’t shout. She didn’t cry.
+          <span class="hint"
+            >But the way she looked at him made his stomach twist. “Did you
+            forget our promise”</span
+          >
+          she asked, her voice quiet but firm.
+          <span class="hint">She didn’t wait for an answer.</span> She just
+          turned around and walked into the kitchen, slowly. Ben followed,
+          suddenly <span class="hint">unsure of what to say</span>. He sat down,
+          watching her move the dishes
+          <span class="hint">without looking at him</span>. Her
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >respeastful</strong
+          >
+          tone still echoed in his head, even as the room fell silent.
+        </p>
+        <form id="form_q7">
+          <!-- 新顺序：A: 严厉的, B: 冷漠的, C: 悲伤的, D: 责备的, E: 困惑的 -->
+          <label><input type="radio" name="q7" value="A" /> A. 严厉的</label>
+          <label><input type="radio" name="q7" value="B" /> B. 冷漠的</label>
+          <label><input type="radio" name="q7" value="C" /> C. 悲伤的</label>
+          <label><input type="radio" name="q7" value="D" /> D. 责备的</label>
+          <label><input type="radio" name="q7" value="E" /> E. 困惑的</label>
+          <button type="button" onclick="checkAnswer('q7')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q7_level1" class="level">
+          Incorrect! Please try again. Look at how she spoke and moved when Ben
+          came home late. What do the character’s actions suggest? How does that
+          make you feel?
+        </div>
+        <div id="q7_level2" class="level">
+          Incorrect! Please try again. Why did she ask about their promise in a
+          calm voice but not wait for an answer? Why didn’t she look at Ben or
+          talk more? What kind of feeling might she have? How does that make you
+          feel?
+        </div>
+        <div id="q7_level3" class="level">
+          Incorrect! Please try again. Imagine someone close to you broke a
+          promise, and instead of yelling, you just looked at them and asked
+          quietly. How would you feel? What emotion might be in your eyes or
+          voice?
+        </div>
+        <div id="q7_level4" class="level">
+          Incorrect! She didn’t yell, but her quiet voice and cold actions made
+          Ben feel bad. Her words showed that she was disappointed and upset
+          because of what he did. This kind of quiet anger or disappointment is
+          called ‘责备的’.
+        </div>
+      </div>
+
+      <!-- Question 8 -->
+      <div class="container question-block" id="question_q8">
+        <h3>
+          8.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >spile</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          “Since you ignored me,” he said with
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >spile</strong
+          >
+          <span class="hint">snapping her pen in half</span>, "enjoy writing
+          now!" She had been working quietly at her desk when he walked in. He
+          stood there for a moment, watching her, but she didn’t look up. She
+          kept writing, focused on her notes. Without saying a word, he reached
+          over,
+          <span class="hint"
+            >picked up her second pen, and dropped it into his bag</span
+          >. “Since you’re too busy to talk,” he said a minute later, not
+          meeting her eyes,
+          <span class="hint">“you probably won’t need that one either.”</span>
+          There was a small smile on his face, but it didn’t reach his eyes.
+        </p>
+        <form id="form_q8">
+          <!-- 新顺序：A: 无聊, B: 恐惧, C: 愤怒, D: 恶意, E: 惊讶 -->
+          <label><input type="radio" name="q8" value="A" /> A. 委屈</label>
+          <label><input type="radio" name="q8" value="B" /> B. 恶意</label>
+          <label><input type="radio" name="q8" value="C" /> C. 愤怒</label>
+          <label><input type="radio" name="q8" value="D" /> D. 恐惧</label>
+          <label><input type="radio" name="q8" value="E" /> E. 惊讶</label>
+          <button type="button" onclick="checkAnswer('q8')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q8_level1" class="level">
+          Incorrect! Please try again. Look at what he did with her pens and
+          what he said. What do his actions and words suggest? How did you feel
+          when you read that part?
+        </div>
+        <div id="q8_level2" class="level">
+          Incorrect! Please try again. Why do you think he broke her pen and
+          took another one, even though she didn’t do anything? What was he
+          trying to make her feel? What kind of feeling do you think he had?
+        </div>
+        <div id="q8_level3" class="level">
+          Incorrect! Please try again. Imagine you felt hurt or ignored by
+          someone. You don’t shout, but you do small things to make them upset
+          on purpose. What kind of emotion would make you do that?
+        </div>
+        <div id="q8_level4" class="level">
+          Incorrect! He broke her pen and took another just to upset her, even
+          though she didn’t say anything. His smile was not kind. This kind of
+          feeling—wanting to hurt someone because you feel hurt—is called
+          ‘恶意’.
+        </div>
+      </div>
+
+      <!-- Question 9 -->
+      <div class="container question-block" id="question_q9">
+        <h3>
+          9.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >voin</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          Liam pulled out his phone and
+          <span class="hint">placed it face-up on the table</span>. The gold
+          case caught the sunlight.
+          <span class="hint">“It’s the newest model,”</span> he said, smiling.
+          He looked around to see if anyone noticed. Then he took out his wallet
+          and slowly opened it. “This one’s real leather,” he added, tapping it
+          twice. His friend nodded but didn’t say much. A few minutes later,
+          Liam said, “I’m thinking of buying that expensive jacket we saw last
+          week. You know, <span class="hint">just to look sharp</span>.” His
+          friend <span class="hint">raised an eyebrow</span>. “You are so
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >voin</strong
+          >
+          sometimes.”
+        </p>
+        <form id="form_q9">
+          <!-- 新顺序：A: 虚荣的, B: 潮流的, C: 虚伪的, D: 浪费的, E: 害羞的 -->
+          <label><input type="radio" name="q9" value="A" /> A. 虚荣的</label>
+          <label><input type="radio" name="q9" value="B" /> B. 潮流的</label>
+          <label><input type="radio" name="q9" value="C" /> C. 虚伪的</label>
+          <label><input type="radio" name="q9" value="D" /> D. 浪费的</label>
+          <label><input type="radio" name="q9" value="E" /> E. 奢侈的</label>
+          <button type="button" onclick="checkAnswer('q9')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q9_level1" class="level">
+          Incorrect! Please try again. Look at what Liam showed and talked
+          about. What do his actions tell you about how he feels? How did you
+          feel when reading about what he said?
+        </div>
+        <div id="q9_level2" class="level">
+          Incorrect! Please try again. Why do you think Liam talked about his
+          phone, his wallet, and a jacket in front of his friend? What kind of
+          feeling made him want others to notice those things?
+        </div>
+        <div id="q9_level3" class="level">
+          Incorrect! Please try again. Imagine you had a new phone and nice
+          things. If you really wanted people to look and think you were cool,
+          what kind of feeling or need might you have?
+        </div>
+        <div id="q9_level4" class="level">
+          Incorrect! Liam talked a lot about his phone, wallet, and clothes. He
+          wanted others to notice and think he looked rich or stylish. This kind
+          of thinking—caring too much about how you look or what you have—is
+          called ‘虚荣的’.
+        </div>
+      </div>
+
+      <!-- Question 10 -->
+      <div class="container question-block" id="question_q10">
+        <h3>
+          10.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >ganowous</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          Clara hadn’t said a word all morning, but
+          <span class="hint"
+            >the look on her face told everyone to keep their distance</span
+          >. Julia walked over and said softly, “Are you still mad about
+          yesterday?” Clara gave a short laugh. “What do you think?” she said.
+          Then after a moment, she added,
+          <span class="hint">“You made sure they all saw it, right?”</span>
+          Julia looked at her. “I didn’t mean to—” “Well, you did,” Clara said,
+          her voice quick and hard.
+          <span class="hint">You always do that</span>. The room was quiet.
+          Julia didn’t move. Clara picked up her bag and left. Someone behind
+          Julia whispered, “That wasn’t just anger. That was……
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >ganowous</strong
+          >.”
+        </p>
+        <form id="form_q10">
+          <!-- 新顺序：A: 难过的, B: 讽刺的, C: 敌意的, D: 奇怪的, E: 冷漠的 -->
+          <label><input type="radio" name="q10" value="A" /> A. 生气的</label>
+          <label><input type="radio" name="q10" value="B" /> B. 讽刺的</label>
+          <label><input type="radio" name="q10" value="C" /> C. 敌意的</label>
+          <label><input type="radio" name="q10" value="D" /> D. 奇怪的</label>
+          <label><input type="radio" name="q10" value="E" /> E. 冷漠的</label>
+          <button type="button" onclick="checkAnswer('q10')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q10_level1" class="level">
+          Incorrect! Please try again. Look at what Clara said and how she said
+          it. What do her words and tone show about how she feels? How did her
+          words make Julia—and you—feel?
+        </div>
+        <div id="q10_level2" class="level">
+          Incorrect! Please try again. Why do you think Clara used such sharp
+          words even though Julia didn’t yell at her? What kind of emotion might
+          make someone speak in a way that hurts others, even in a quiet voice?
+        </div>
+        <div id="q10_level3" class="level">
+          Incorrect! Please try again. Imagine someone did something that really
+          hurt you, and you didn’t want to shout—but instead used cold, strong
+          words to make them feel bad. What kind of emotion would you be
+          feeling?
+        </div>
+        <div id="q10_level4" class="level">
+          Incorrect! Clara didn’t shout, but her words were sharp and full of
+          anger. They hurt Julia like poison. When someone speaks in a cold,
+          angry way that feels like an attack, we call it ‘敌意的’.
+          <br />
+          <button onclick="nextQuestion()">下一题</button>
+        </div>
+      </div>
+
+      <!-- Question 11 -->
+      <div class="container question-block" id="question_q11">
+        <h3>
+          11.根据上下文推断加粗词汇
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >rokful</strong
+          >
+          的意思：
+        </h3>
+        <p>
+          Lena walked into the room and stopped. A board game was on the floor.
+          The pieces were all over, and one of the cards was broken in half. Her
+          little brother, Sam, stood next to it, holding the box in his hands.
+          “<span class="hint">I didn’t know it could break so fast,</span>” he
+          said, <span class="hint">looking down at the floor</span>. Lena didn’t
+          say anything. After a moment, she sat on the floor and started picking
+          up the pieces. Sam walked over slowly and put the broken card next to
+          her. “<span class="hint">I thought</span> it would be funny,” he said.
+          Lena looked at him quickly. He gave a
+          <strong
+            class="target"
+            style="background-color:#b3d4fc; padding:2px 6px; border-radius:3px; font-weight:bold;"
+            >rokful</strong
+          >
+          smile.
+        </p>
+        <form id="form_q11">
+          <!-- 新顺序：A: 调皮的, B: 得意的, C: 生气的, D: 害怕的, E: 懊悔的 -->
+          <label><input type="radio" name="q11" value="A" /> A. 调皮的</label>
+          <label><input type="radio" name="q11" value="B" /> B. 得意的</label>
+          <label><input type="radio" name="q11" value="C" /> C. 生气的</label>
+          <label><input type="radio" name="q11" value="D" /> D. 害怕的</label>
+          <label><input type="radio" name="q11" value="E" /> E. 懊悔的</label>
+          <button type="button" onclick="checkAnswer('q11')">
+            Submit Answer
+          </button>
+        </form>
+        <div id="q11_level1" class="level">
+          Incorrect! Please try again. Look at what Sam said and did after Lena
+          saw the broken game. What do his words and smile tell you? How did you
+          feel reading this part?
+        </div>
+        <div id="q11_level2" class="level">
+          Incorrect! Please try again. Why do you think Sam said “I thought it
+          would be funny,” but then gave a small smile and looked down? What
+          kind of feeling might he have had when he gave her the card?
+        </div>
+        <div id="q11_level3" class="level">
+          Incorrect! Please try again. Imagine you did something you thought was
+          funny, but it hurt someone or broke something. You feel bad, but you
+          try to smile. What kind of feeling would that be?
+        </div>
+        <div id="q11_level4" class="level">
+          Incorrect! Sam tried to smile, but he knew he made a mistake. His
+          smile showed that he felt bad and sorry, but also a little
+          embarrassed. This kind of feeling is called ‘懊悔的’.
+          <br />
+          <button onclick="nextQuestion()">下一题</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 导出及提交按钮区域 -->
+    <div
+      class="container"
+      id="resultContainer"
+      style="display: none; text-align: center;"
+    >
+      <button type="button" onclick="exportResults()">
+        📥 导出为Excel文件 请保存至本地文件并返回本页面提交
+      </button>
+      <p style="font-size: 14px; color: #555; margin-top: 8px;">
+        如无法下载，请尝试复制并提交：
+      </p>
+      <button type="button" onclick="showCSV()">📋 显示CSV文本以复制</button>
+    </div>
+    <div
+      id="csvContainer"
+      style="display:none; margin-top:20px; text-align:left; position:relative;"
+    >
+      <h3>请复制以下内容：</h3>
+      <pre
+        id="csvContent"
+        style="white-space: pre-wrap; background:#f9f9f9; border:1px solid #ccc; padding:12px; border-radius:8px; min-height: 150px;"
+      ></pre>
+
+      <!-- 一键复制按钮和提示 -->
+      <div style="margin-top: 10px; position: relative; display: inline-block;">
+        <button id="copyCsvBtn">📋 一键复制</button>
+        <span id="copyStatus" class="copy-status">✅ 已复制！</span>
+      </div>
+    </div>
+
+    <script>
+          // 开始测试：验证班级和学号填写后，隐藏开始页面，显示题目区域
+          function startTest() {
+            let studentClass = document.getElementById("class_name").value.trim();
+            let studentID = document.getElementById("student_id").value.trim();
+            if (studentClass === "" || studentID === "") {
+              alert("请完整填写班级和学号！");
+              return;
+            }
+            // 隐藏开始页面，显示题目区域
+            document.getElementById("startPage").style.display = "none";
+            document.getElementById("questionsPage").style.display = "block";
+          }
+
+          // 正确答案对象
+          const correctKeys = {
+            q1: "D",  // 题1正确答案“advadalent”在选项 D
+            q2: "A",  // 题2正确答案“belientment”在选项 A
+            q3: "E",  // 题3正确答案“cotanous”在选项 E
+            q4: "C",  // 题4正确答案“decraft”在选项 C
+            q5: "B",  // 题5正确答案“ettritic”在选项 B
+            q6: "D",  // 题6正确答案“resencants”在选项 D
+            q7: "D",  // 题7正确答案“respeastful”在选项 D
+            q8: "B",  // 题8正确答案“spile”在选项 B
+            q9: "A",  // 题9正确答案“voin”在选项 A
+            q10: "C", // 题10正确答案“ganowous”在选项 C
+            q11: "E"  // 题11正确答案“rokful”在选项 E
+          };
+          const maxAttempts = 4;
+
+          // 分数计算规则：
+          // 第一次答对： basic = 4, potential = 0；
+          // 第二次答对： potential = 1.5；第三次：1.0；第四次：0.5；
+          let attempts = { q1: 0, q2: 0, q3: 0, q4: 0, q5: 0, q6: 0, q7: 0, q8: 0, q9: 0, q10: 0, q11: 0 };
+          let answerHistory = { q1: [], q2: [], q3: [], q4: [], q5: [], q6: [], q7: [], q8: [], q9: [], q10: [], q11: [] };
+          let questionStatus = { q1: false, q2: false, q3: false, q4: false, q5: false, q6: false, q7: false, q8: false, q9: false, q10: false, q11: false };
+
+          // 题目顺序及当前题目编号
+          const questionIds = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11"];
+          let currentQ = questionIds[0];
+
+          // 检查答案函数（恢复每次作答时先隐藏本题所有级别提示的逻辑，并确保最后一级提示能显示且由学生点击下一题）
+          function checkAnswer(qid) {
+            // 隐藏当前题目的所有提示
+            for (let i = 1; i <= maxAttempts; i++) {
+              let levelDiv = document.getElementById(`${qid}_level${i}`);
+              if (levelDiv) levelDiv.style.display = 'none';
+            }
+
+            // 获取所选答案
+            const radios = document.getElementsByName(qid);
+            let selected = "";
+            for (const radio of radios) {
+              if (radio.checked) {
+                selected = radio.value;
+                break;
+              }
+            }
+            if (!selected) {
+              alert("Please select an answer!");
+              return;
+            }
+
+            answerHistory[qid].push(selected);
+            attempts[qid]++;
+
+            if (selected === correctKeys[qid]) {
+              questionStatus[qid] = true;
+              alert("Correct Answer!");
+              // 禁用所有选项
+              radios.forEach(radio => radio.disabled = true);
+              nextQuestion();
+            } else {
+              // 当第一次错误时，对提示部分（.hint）添加黄色高亮（目标词汇 (.target) 保持蓝色不变）
+              if (attempts[qid] === 1) {
+                document.querySelectorAll(`#question_${qid} .hint`).forEach(el => {
+                  el.style.backgroundColor = "#fffd9e";
+                  el.style.padding = "2px 6px";
+                  el.style.borderRadius = "3px";
+                });
+              }
+              // 如果还未达到最后一次尝试，则直接显示相应级别提示
+              if (attempts[qid] < maxAttempts) {
+                document.getElementById(`${qid}_level${attempts[qid]}`).style.display = 'block';
+              }
+              // 当达到最后一次尝试时，显示level4提示，并在其中添加“下一题”按钮供学生点击
+              if (attempts[qid] === maxAttempts) {
+                let level4 = document.getElementById(`${qid}_level${attempts[qid]}`);
+                level4.style.display = 'block';
+                let nextBtn = document.createElement("button");
+                nextBtn.innerText = "下一题";
+                nextBtn.onclick = function() { nextQuestion(); };
+                // 仅添加一次“下一题”按钮（防止重复添加）
+                if (!level4.querySelector("button")) {
+                  level4.appendChild(document.createElement("br"));
+                  level4.appendChild(nextBtn);
+                }
+                radios.forEach(radio => radio.disabled = true);
+                const btn = document.querySelector(`#form_${qid} button`);
+                if (btn) btn.disabled = true;
+              }
+            }
+          }
+
+          // 切换到下一题
+          function nextQuestion() {
+            document.getElementById("question_" + currentQ).classList.remove("active");
+            const currentIndex = questionIds.indexOf(currentQ);
+            if (currentIndex < questionIds.length - 1) {
+              currentQ = questionIds[currentIndex + 1];
+              document.getElementById("question_" + currentQ).classList.add("active");
+            } else {
+              document.getElementById("resultContainer").style.display = "block";
+            }
+          }
+
+          // 计算并导出分数，同时生成 Excel 文件并跳转提交链接
+          function exportResults() {
+            let pretestTotal = 0;
+            let potentialTotal = 0;
+            // 修改表头，删除“Potential Score”列
+            let data = [["Question", "Answer History", "Basic Score", "Potential (Item)"]];
+
+            questionIds.forEach(qid => {
+              let basic = 0;
+              let potential = 0;
+              if (questionStatus[qid]) {
+                if (attempts[qid] === 1) {
+                  basic = 4;
+                  potential = 0;
+                } else if (attempts[qid] === 2) {
+                  basic = 0;
+                  potential = ((2 * 3) - 0) / 4;  // 1.5
+                } else if (attempts[qid] === 3) {
+                  basic = 0;
+                  potential = ((2 * 2) - 0) / 4;  // 1.0
+                } else if (attempts[qid] === 4) {
+                  basic = 0;
+                  potential = ((2 * 1) - 0) / 4;  // 0.5
+                }
+              }
+              pretestTotal += basic;
+              potentialTotal += potential;
+              // 每行数据只输出一列潜力分
+              data.push([qid, answerHistory[qid].join(","), basic, potential.toFixed(3)]);
+            });
+
+            // 在结果表最前面加入学号和班级信息
+            let studentClass = document.getElementById("class_name").value;
+            let studentID = document.getElementById("student_id").value;
+            let headerRows = [
+                ["班级:", studentClass],
+                ["学号:", studentID],
+                []  // 空行
+            ];
+
+            data = headerRows.concat(data);
+
+            // 在Excel中增加总分行，只增加一列潜力分
+            data.push([]);
+            data.push(["Total", "", pretestTotal, potentialTotal.toFixed(3)]);
+
+            // 生成工作表及工作簿
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Results");
+            const wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
+
+            function s2ab(s) {
+              const buf = new ArrayBuffer(s.length);
+              const view = new Uint8Array(buf);
+              for (let i = 0; i < s.length; i++) {
+                view[i] = s.charCodeAt(i) & 0xFF;
+              }
+              return buf;
+            }
+            const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+            const url = URL.createObjectURL(blob);
+            const downloadLink = document.createElement("a");
+            downloadLink.href = url;
+            downloadLink.download = "result.xlsx";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            setTimeout(function() {
+              window.location.href = "https://c.wss.pet/s/gt7rgkgsphn";
+            }, 2000);
+          }
+
+          function showCSV() {
+            const studentId = document.getElementById("student_id").value;
+            const studentClass = document.getElementById("class_name").value;
+
+            const rows = [
+               ["学生ID", studentId],
+               ["班级", studentClass],
+               [],
+               ["题号", "作答记录", "基础分", "潜力分"]
+            ];
+
+            let pretestTotal = 0;
+            let potentialTotal = 0;
+
+            questionIds.forEach(qid => {
+            let basic = 0, potential = 0;
+              if (questionStatus[qid]) {
+              if (attempts[qid] === 1) {
+                basic = 4;
+                } else if (attempts[qid] === 2) {
+                potential = ((2 * 3) - 0) / 4;
+                } else if (attempts[qid] === 3) {
+                potential = ((2 * 2) - 0) / 4;
+                } else if (attempts[qid] === 4) {
+                potential = ((2 * 1) - 0) / 4;
+                }
+            }
+            pretestTotal += basic;
+            potentialTotal += potential;
+            rows.push([
+              qid,
+              answerHistory[qid].join(","),
+              basic,
+              potential.toFixed(3)
+            ]);
           });
+
+          rows.push([]);
+          rows.push(["Total", "", pretestTotal, potentialTotal.toFixed(3)]);
+
+          const csv = rows.map(r => r.join(",")).join("\n");
+          const csvBox = document.getElementById("csvContent");
+          const container = document.getElementById("csvContainer");
+          csvBox.innerText = csv;
+          container.style.display = "block";
+          document.getElementById("copyCsvBtn").onclick = function () {
+        navigator.clipboard.writeText(csv)
+          .then(() => {
+            const status = document.getElementById("copyStatus");
+            status.classList.add("show");
+            setTimeout(() => status.classList.remove("show"), 2000);
+          })
+          .catch(err => alert("复制失败：" + err));
+      };
+          // —— 新增导出 ——
+          setTimeout(function() {
+            window.location.href = "https://www.wjx.cn/vm/rCTBkUa.aspx";
+          }, 20000);
         }
-        // 如果还未达到最后一次尝试，则直接显示相应级别提示
-        if (attempts[qid] < maxAttempts) {
-          document.getElementById(`${qid}_level${attempts[qid]}`).style.display = 'block';
-        }
-        // 当达到最后一次尝试时，显示level4提示，并在其中添加“下一题”按钮供学生点击
-        if (attempts[qid] === maxAttempts) {
-          let level4 = document.getElementById(`${qid}_level${attempts[qid]}`);
-          level4.style.display = 'block';
-          let nextBtn = document.createElement("button");
-          nextBtn.innerText = "下一题";
-          nextBtn.onclick = function() { nextQuestion(); };
-          // 仅添加一次“下一题”按钮（防止重复添加）
-          if (!level4.querySelector("button")) {
-            level4.appendChild(document.createElement("br"));
-            level4.appendChild(nextBtn);
-          }
-          radios.forEach(radio => radio.disabled = true);
-          const btn = document.querySelector(`#form_${qid} button`);
-          if (btn) btn.disabled = true;
-        }
-      }
-    }
-    
-    // 切换到下一题
-    function nextQuestion() {
-      document.getElementById("question_" + currentQ).classList.remove("active");
-      const currentIndex = questionIds.indexOf(currentQ);
-      if (currentIndex < questionIds.length - 1) {
-        currentQ = questionIds[currentIndex + 1];
-        document.getElementById("question_" + currentQ).classList.add("active");
-      } else {
-        document.getElementById("resultContainer").style.display = "block";
-      }
-    }
-    
-    // 计算并导出分数，同时生成 Excel 文件并跳转提交链接
-    function exportResults() {
-      let pretestTotal = 0;
-      let potentialTotal = 0;
-      // 修改表头，删除“Potential Score”列
-      let data = [["Question", "Answer History", "Basic Score", "Potential (Item)"]];
-      
-      questionIds.forEach(qid => {
-        let basic = 0;
-        let potential = 0;
-        if (questionStatus[qid]) {
-          if (attempts[qid] === 1) {
-            basic = 4;
-            potential = 0;
-          } else if (attempts[qid] === 2) {
-            basic = 0;
-            potential = ((2 * 3) - 0) / 4;  // 1.5
-          } else if (attempts[qid] === 3) {
-            basic = 0;
-            potential = ((2 * 2) - 0) / 4;  // 1.0
-          } else if (attempts[qid] === 4) {
-            basic = 0;
-            potential = ((2 * 1) - 0) / 4;  // 0.5
-          }
-        }
-        pretestTotal += basic;
-        potentialTotal += potential;
-        // 每行数据只输出一列潜力分
-        data.push([qid, answerHistory[qid].join(","), basic, potential.toFixed(3)]);
-      });
-      
-      // 在结果表最前面加入学号和班级信息
-      let studentClass = document.getElementById("class_name").value;
-      let studentID = document.getElementById("student_id").value;
-      let headerRows = [
-          ["班级:", studentClass],
-          ["学号:", studentID],
-          []  // 空行
-      ];
-      
-      data = headerRows.concat(data);
-      
-      // 在Excel中增加总分行，只增加一列潜力分
-      data.push([]);
-      data.push(["Total", "", pretestTotal, potentialTotal.toFixed(3)]);
-      
-      // 生成工作表及工作簿
-      const ws = XLSX.utils.aoa_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Results");
-      const wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
-      
-      function s2ab(s) {
-        const buf = new ArrayBuffer(s.length);
-        const view = new Uint8Array(buf);
-        for (let i = 0; i < s.length; i++) {
-          view[i] = s.charCodeAt(i) & 0xFF;
-        }
-        return buf;
-      }
-      const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
-      const url = URL.createObjectURL(blob);
-      const downloadLink = document.createElement("a");
-      downloadLink.href = url;
-      downloadLink.download = "result.xlsx";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      
-      setTimeout(function() {
-        window.location.href = "https://c.wss.pet/s/gt7rgkgsphn";
-      }, 2000);
-    }
-
-    function showCSV() {
-      const studentId = document.getElementById("student_id").value;
-      const studentClass = document.getElementById("class_name").value;
-
-      const rows = [
-         ["学生ID", studentId],
-         ["班级", studentClass],
-         [],
-         ["题号", "作答记录", "基础分", "潜力分"]
-      ];
-
-      let pretestTotal = 0;
-      let potentialTotal = 0;
-
-      questionIds.forEach(qid => {
-      let basic = 0, potential = 0;
-        if (questionStatus[qid]) {
-        if (attempts[qid] === 1) {
-          basic = 4;
-          } else if (attempts[qid] === 2) {
-          potential = ((2 * 3) - 0) / 4;
-          } else if (attempts[qid] === 3) {
-          potential = ((2 * 2) - 0) / 4;
-          } else if (attempts[qid] === 4) {
-          potential = ((2 * 1) - 0) / 4;
-          }
-      }
-      pretestTotal += basic;
-      potentialTotal += potential;
-      rows.push([
-        qid,
-        answerHistory[qid].join(","),
-        basic,
-        potential.toFixed(3)
-      ]);
-    });
-
-    rows.push([]);
-    rows.push(["Total", "", pretestTotal, potentialTotal.toFixed(3)]);
-
-    const csv = rows.map(r => r.join(",")).join("\n");
-    const csvBox = document.getElementById("csvContent");
-    const container = document.getElementById("csvContainer");
-    csvBox.innerText = csv;
-    container.style.display = "block";
-
-    // —— 新增导出 ——  
-    setTimeout(function() {
-      window.location.href = "https://www.wjx.cn/vm/rCTBkUa.aspx";
-    }, 20000);
-  }
-  </script>
-</body>
+    </script>
+  </body>
 </html>

@@ -916,11 +916,9 @@
       id="resultContainer"
       style="display: none; text-align: center;"
     >
-      <button type="button" onclick="exportResults()">
-        📥 导出为Excel文件 请保存至本地文件并返回本页面提交
-      </button>
+      
       <p style="font-size: 14px; color: #555; margin-top: 8px;">
-        如无法下载，请尝试复制并提交：
+        请复制以下内容，并等待10s页面跳转后提交：
       </p>
       <button type="button" onclick="showCSV()">📋 显示CSV文本以复制</button>
     </div>
@@ -937,7 +935,7 @@
       <!-- 一键复制按钮和提示 -->
       <div style="margin-top: 10px; position: relative; display: inline-block;">
         <button id="copyCsvBtn">📋 一键复制</button>
-        <span id="copyStatus" class="copy-status">✅ 已复制！</span>
+        <span id="copyStatus" class="copy-status">✅ 已复制！页面将于10s跳转</span>
       </div>
     </div>
 
@@ -1057,80 +1055,6 @@
             }
           }
 
-          // 计算并导出分数，同时生成 Excel 文件并跳转提交链接
-          function exportResults() {
-            let pretestTotal = 0;
-            let potentialTotal = 0;
-            // 修改表头，删除“Potential Score”列
-            let data = [["Question", "Answer History", "Basic Score", "Potential (Item)"]];
-
-            questionIds.forEach(qid => {
-              let basic = 0;
-              let potential = 0;
-              if (questionStatus[qid]) {
-                if (attempts[qid] === 1) {
-                  basic = 4;
-                  potential = 0;
-                } else if (attempts[qid] === 2) {
-                  basic = 0;
-                  potential = ((2 * 3) - 0) / 4;  // 1.5
-                } else if (attempts[qid] === 3) {
-                  basic = 0;
-                  potential = ((2 * 2) - 0) / 4;  // 1.0
-                } else if (attempts[qid] === 4) {
-                  basic = 0;
-                  potential = ((2 * 1) - 0) / 4;  // 0.5
-                }
-              }
-              pretestTotal += basic;
-              potentialTotal += potential;
-              // 每行数据只输出一列潜力分
-              data.push([qid, answerHistory[qid].join(","), basic, potential.toFixed(3)]);
-            });
-
-            // 在结果表最前面加入学号和班级信息
-            let studentClass = document.getElementById("class_name").value;
-            let studentID = document.getElementById("student_id").value;
-            let headerRows = [
-                ["班级:", studentClass],
-                ["学号:", studentID],
-                []  // 空行
-            ];
-
-            data = headerRows.concat(data);
-
-            // 在Excel中增加总分行，只增加一列潜力分
-            data.push([]);
-            data.push(["Total", "", pretestTotal, potentialTotal.toFixed(3)]);
-
-            // 生成工作表及工作簿
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Results");
-            const wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
-
-            function s2ab(s) {
-              const buf = new ArrayBuffer(s.length);
-              const view = new Uint8Array(buf);
-              for (let i = 0; i < s.length; i++) {
-                view[i] = s.charCodeAt(i) & 0xFF;
-              }
-              return buf;
-            }
-            const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
-            const url = URL.createObjectURL(blob);
-            const downloadLink = document.createElement("a");
-            downloadLink.href = url;
-            downloadLink.download = "result.xlsx";
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-
-            setTimeout(function() {
-              window.location.href = "https://c.wss.pet/s/gt7rgkgsphn";
-            }, 2000);
-          }
-
           function showCSV() {
             const studentId = document.getElementById("student_id").value;
             const studentClass = document.getElementById("class_name").value;
@@ -1188,7 +1112,7 @@
           // —— 新增导出 ——
           setTimeout(function() {
             window.location.href = "https://www.wjx.cn/vm/rCTBkUa.aspx";
-          }, 20000);
+          }, 10000);
         }
     </script>
   </body>
